@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+
+/* Premium animated background blobs */
+@keyframes floaty {
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    50% {
+        transform: translate(30px, -20px) scale(1.08);
+    }
+
+    100% {
+        transform: translate(0, 0) scale(1);
+    }
+}
+
+.blob {
+    animation: floaty 8s ease-in-out infinite;
+}
+
+.blob2 {
+    animation: floaty 10s ease-in-out infinite;
+    animation-delay: -2s;
+}
+
+.glow-border {
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.10),
+        0 0 30px rgba(255, 214, 10, 0.15),
+        0 0 60px rgba(168, 85, 247, 0.12);
+}

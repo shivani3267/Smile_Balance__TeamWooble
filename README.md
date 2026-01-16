@@ -8,7 +8,7 @@ In today’s fast-paced digital world, people are experiencing increased stress,
 
 <b>Project Description:</b>
 
-SmileForHope is a web-based platform that allows users to earn money by simply smiling. Users register securely through OTP-based phone number authentication to ensure one account per person. The platform uses AI-powered face and smile detection to verify that each uploaded selfie contains a real and genuine smile. Once verified, users receive reward credits for every smile. These credits can later be converted into real money after reaching a minimum withdrawal threshold. To prevent misuse, users are limited to two smile submissions per day with a six-hour gap between them. A personal dashboard tracks smile history, earnings, and streaks, motivating users to stay consistent. SmileForHope combines technology, positivity, and financial motivation into one impactful solution.
+SmileBalance is a web-based platform that allows users to earn money by simply smiling. Users register securely through OTP-based phone number authentication to ensure one account per person. The platform uses AI-powered face and smile detection to verify that each uploaded selfie contains a real and genuine smile. Once verified, users receive reward credits for every smile. These credits can later be converted into real money after reaching a minimum withdrawal threshold. To prevent misuse, users are limited to two smile submissions per day with a six-hour gap between them. A personal dashboard tracks smile history, earnings, and streaks, motivating users to stay consistent. SmileForHope combines technology, positivity, and financial motivation into one impactful solution.
 
 <b>Project Features:</b>
 <ol>

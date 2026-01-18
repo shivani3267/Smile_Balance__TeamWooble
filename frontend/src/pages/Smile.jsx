@@ -12,11 +12,11 @@ export default function Smile() {
     const [status, setStatus] = useState("Ready for scan")
 
     useEffect(() => {
-        // Cleanup camera on page leave
+
         return () => {
             stopCamera()
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
     }, [])
 
     const startCamera = async () => {
@@ -47,7 +47,7 @@ export default function Smile() {
                 stream.getTracks().forEach((t) => t.stop())
             }
         } catch (e) {
-            // ignore
+
         }
         setStream(null)
         setIsCameraOn(false)
@@ -65,7 +65,7 @@ export default function Smile() {
 
         const data = canvas.toDataURL("image/png")
         setCaptured(data)
-        setStatus("Captured ✅ (AI scan UI demo)")
+        setStatus("Captured ✅ ")
     }
 
     const resetCapture = () => {
@@ -78,29 +78,29 @@ export default function Smile() {
         if (!file) return
         const url = URL.createObjectURL(file)
         setCaptured(url)
-        setStatus("Uploaded ✅ (AI scan UI demo)")
+        setStatus("Uploaded ✅")
     }
 
     return (
         <div className="min-h-screen relative overflow-hidden bg-[#070711] text-white">
-            {/* Animated Orbs */}
+            { }
             <div className="absolute -top-32 -left-32 w-[520px] h-[520px] rounded-full bg-gradient-to-br from-yellow-300/25 to-orange-500/15 blur-3xl blob" />
             <div className="absolute top-40 -right-40 w-[640px] h-[640px] rounded-full bg-gradient-to-br from-fuchsia-500/20 to-purple-600/15 blur-3xl blob2" />
             <div className="absolute -bottom-56 left-24 w-[720px] h-[720px] rounded-full bg-gradient-to-br from-emerald-400/18 to-cyan-500/10 blur-3xl blob" />
 
-            {/* Grid overlay */}
+            { }
             <div className="absolute inset-0 opacity-[0.12] bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.18)_1px,transparent_0)] [background-size:22px_22px]" />
 
             <div className="relative z-10 p-6 md:p-10 max-w-[1200px] mx-auto">
-                {/* Top Bar */}
+                { }
                 <div className="flex items-center justify-between">
                     <div>
                         <p className="text-gray-300 text-sm">Smile Scan</p>
                         <h1 className="text-3xl md:text-4xl font-extrabold">
-                            AI Camera Verification ✨
+                            AI Camera Verification
                         </h1>
                         <p className="text-gray-300 mt-2 text-sm max-w-xl">
-                            Frontend demo: capture a selfie using camera or upload. Next step we’ll plug AI
+                            capture a selfie using camera or upload. Next step AI
                             smile detection.
                         </p>
                     </div>
@@ -114,7 +114,7 @@ export default function Smile() {
                 </div>
 
                 <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-4">
-                    {/* Camera Panel */}
+                    { }
                     <div className="lg:col-span-2 bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-5 md:p-7 glow-border relative overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-br from-yellow-300/10 via-transparent to-fuchsia-500/10 blur-2xl" />
 
@@ -159,9 +159,9 @@ export default function Smile() {
                                 </div>
                             </div>
 
-                            {/* Futuristic Frame */}
+                            { }
                             <div className="mt-5 relative rounded-3xl overflow-hidden border border-white/15 bg-black/40">
-                                {/* Corner accents */}
+                                { }
                                 <div className="pointer-events-none absolute inset-0">
                                     <div className="absolute top-4 left-4 w-10 h-10 border-l-2 border-t-2 border-yellow-300/70 rounded-tl-2xl" />
                                     <div className="absolute top-4 right-4 w-10 h-10 border-r-2 border-t-2 border-fuchsia-400/60 rounded-tr-2xl" />
@@ -169,7 +169,7 @@ export default function Smile() {
                                     <div className="absolute bottom-4 right-4 w-10 h-10 border-r-2 border-b-2 border-cyan-300/60 rounded-br-2xl" />
                                 </div>
 
-                                {/* Video or captured image */}
+                                { }
                                 <div className="aspect-square w-full flex items-center justify-center">
                                     {!captured ? (
                                         <video
@@ -187,23 +187,23 @@ export default function Smile() {
                                     )}
                                 </div>
 
-                                {/* Scanning line (UI effect) */}
+                                { }
                                 <div className="pointer-events-none absolute left-0 right-0 top-0 h-full">
                                     <div className="scanline absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-yellow-300 to-transparent opacity-70" />
                                 </div>
 
-                                {/* Subtle vignette */}
+                                { }
                                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_45%,rgba(0,0,0,0.55)_100%)]" />
                             </div>
 
-                            {/* Actions */}
+                            { }
                             <div className="mt-5 flex flex-col md:flex-row gap-3">
                                 <button
                                     onClick={capture}
                                     className="flex-1 py-4 rounded-2xl bg-gradient-to-r from-yellow-300 to-orange-400 text-black font-extrabold hover:scale-[1.01] transition disabled:opacity-40 disabled:hover:scale-100"
                                     disabled={!isCameraOn || !!captured}
                                 >
-                                    😊 Capture Selfie
+                                    Capture Selfie
                                     <p className="text-xs font-medium opacity-80 mt-1">
                                         (Requires camera on)
                                     </p>
@@ -218,12 +218,12 @@ export default function Smile() {
                                 </button>
                             </div>
 
-                            {/* Hidden canvas for capture */}
+                            { }
                             <canvas ref={canvasRef} className="hidden" />
                         </div>
                     </div>
 
-                    {/* Right: AI Status + Rules */}
+                    { }
                     <div className="bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-6">
                         <h3 className="text-xl font-bold">AI Scan Panel</h3>
                         <p className="text-gray-300 text-sm mt-2">
@@ -250,13 +250,13 @@ export default function Smile() {
 
                         <button
                             className={`mt-6 w-full py-4 rounded-2xl font-extrabold transition ${captured
-                                    ? "bg-white text-black hover:scale-[1.02]"
-                                    : "bg-white/10 text-gray-400 cursor-not-allowed"
+                                ? "bg-white text-black hover:scale-[1.02]"
+                                : "bg-white/10 text-gray-400 cursor-not-allowed"
                                 }`}
                             disabled={!captured}
                             onClick={() => setStatus("Scanning... (UI demo)")}
                         >
-                            Start AI Scan ✨
+                            Start AI Scan
                         </button>
 
                         <p className="mt-4 text-xs text-gray-400">
@@ -266,7 +266,7 @@ export default function Smile() {
                 </div>
             </div>
 
-            {/* Scanline animation style (Tailwind friendly) */}
+            { }
             <style>{`
         @keyframes scan {
           0% { transform: translateY(-10%); opacity: 0.0; }

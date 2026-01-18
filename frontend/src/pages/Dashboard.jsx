@@ -1,139 +1,165 @@
-import { Link, useNavigate } from "react-router-dom"
-import OrbBackground from "../components/ui/OrbBackground"
-import GlassCard from "../components/ui/GlassCard"
-import Badge from "../components/ui/Badge"
-import StatCard from "../components/ui/StatCard"
-import PrimaryButton from "../components/ui/PrimaryButton"
-import TopBar from "../components/layout/TopBar"
+import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import {
+    getUser,
+    getSmiles,
+    calcStreakDays,
+    todaysSmileCount,
+    sixHourWaitLeftMs,
+} from "../utils/storage"
+import { getAchievements } from "../utils/achievements"
 
 export default function Dashboard() {
     const nav = useNavigate()
 
-    // Demo data (frontend-only)
-    const user = {
+    const [data, setData] = useState({
         name: "Shivam",
-        balance: 240,
-        smiles: 24,
-        streak: 7,
-        todaySmiles: 1, // out of 2
-        nextSmileIn: "02h 18m", // fake timer for UI
+        credits: 0,
+        smiles: 0,
+        streak: 0,
+        todayCount: 0,
+        nextIn: "Now ✅",
+        activity: [],
+        achievements: { unlocked: [], all: [], newlyUnlocked: [] },
+    })
+
+    const refresh = () => {
+        const u = getUser()
+        const smilesArr = getSmiles()
+        const streak = calcStreakDays()
+        const todayCount = todaysSmileCount()
+
+        const leftMs = sixHourWaitLeftMs()
+        const mins = Math.ceil(leftMs / (60 * 1000))
+        const hh = String(Math.floor(mins / 60)).padStart(2, "0")
+        const mm = String(mins % 60).padStart(2, "0")
+        const nextIn = leftMs === 0 ? "Now ✅" : `${hh}h ${mm}m`
+
+        const activity = [...smilesArr]
+            .slice(-6)
+            .reverse()
+            .map((s) => {
+                const isWithdraw = s.type === "withdraw"
+                return {
+                    title: isWithdraw ? "Withdrawal Request" : "Smile Verified",
+                    time: new Date(s.time).toLocaleString(),
+                    amount: isWithdraw ? `-₹${s.amount}` : `+₹${s.creditsEarned ?? 10}`,
+                    kind: isWithdraw ? "withdraw" : "smile",
+                }
+            })
+
+        const ach = getAchievements()
+
+        setData({
+            name: u.name || "Shivam",
+            credits: u.credits || 0,
+            smiles: smilesArr.filter((s) => s.type !== "withdraw").length,
+            streak,
+            todayCount,
+            nextIn,
+            activity,
+            achievements: ach,
+        })
     }
 
-    const activity = [
-        { title: "Smile Verified", time: "Today • 6:10 PM", amount: "+₹10" },
-        { title: "Smile Verified", time: "Yesterday • 9:05 AM", amount: "+₹10" },
-        { title: "Withdrawal Request", time: "Jan 12 • 3:22 PM", amount: "₹100" },
-    ]
+    useEffect(() => {
+        refresh()
+        const timer = setInterval(refresh, 2000)
+        const onStorage = () => refresh()
+        window.addEventListener("storage", onStorage)
+
+        return () => {
+            clearInterval(timer)
+            window.removeEventListener("storage", onStorage)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     return (
         <div className="min-h-screen relative overflow-hidden bg-[#070711] text-white">
-            {/* Animated Orbs */}
+            { }
             <div className="absolute -top-32 -left-32 w-[520px] h-[520px] rounded-full bg-gradient-to-br from-yellow-300/25 to-orange-500/15 blur-3xl blob" />
             <div className="absolute top-40 -right-40 w-[640px] h-[640px] rounded-full bg-gradient-to-br from-fuchsia-500/20 to-purple-600/15 blur-3xl blob2" />
             <div className="absolute -bottom-56 left-24 w-[720px] h-[720px] rounded-full bg-gradient-to-br from-emerald-400/18 to-cyan-500/10 blur-3xl blob" />
-
-            {/* Grid overlay */}
             <div className="absolute inset-0 opacity-[0.12] bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.18)_1px,transparent_0)] [background-size:22px_22px]" />
 
             <div className="relative z-10 p-6 md:p-10 max-w-[1200px] mx-auto">
-                <TopBar />
-                <div className="flex items-center justify-between">
+                { }
+                <div className="flex items-start justify-between gap-4">
                     <div>
                         <p className="text-gray-300 text-sm">Welcome back</p>
-                        <h1 className="text-3xl md:text-4xl font-extrabold">
-                            {user.name} 👋
-                        </h1>
+                        <h1 className="text-3xl md:text-4xl font-extrabold">{data.name} </h1>
+                        <p className="text-gray-300 mt-2 text-sm">AI-verified smiles update earnings instantly.</p>
+                    </div>
+                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-yellow-300/40 to-fuchsia-500/30 border border-white/15" />
+                </div>
+
+                { }
+                <div className="mt-8 bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 md:p-8 glow-border">
+                    <p className="text-gray-300">Total Earnings</p>
+                    <h2 className="text-5xl font-extrabold mt-2">
+                        <span className="text-green-300">₹</span>
+                        <span className="bg-gradient-to-r from-green-200 to-emerald-400 bg-clip-text text-transparent">
+                            {data.credits}
+                        </span>
+                    </h2>
+
+                    <div className="mt-4 flex flex-wrap gap-3">
+                        <Badge label="AI Verified" />
+                        <Badge label={`${data.smiles} Smiles`} />
+                        <Badge label={` ${data.streak} Day Streak`} />
                     </div>
 
-                    <div className="flex items-center gap-3">
-                        <Link
-                            to="/withdraw"
-                            className="hidden md:inline-flex items-center justify-center px-4 py-2 rounded-2xl bg-white/10 border border-white/15 hover:bg-white/15 transition"
+                    <div className="mt-6 flex gap-3 flex-col md:flex-row">
+                        <button
+                            onClick={() => nav("/smile")}
+                            className="px-6 py-4 rounded-2xl bg-gradient-to-r from-yellow-300 to-orange-400 text-black font-extrabold hover:scale-[1.02] transition shadow-xl"
+                        >
+                            Give a Smile
+                            <p className="text-xs font-medium opacity-80 mt-1">Earn +₹10</p>
+                        </button>
+
+                        <button
+                            onClick={() => nav("/withdraw")}
+                            className="px-6 py-4 rounded-2xl bg-gradient-to-r from-emerald-300 to-green-400 text-black font-extrabold hover:scale-[1.02] transition shadow-xl"
                         >
                             Wallet
-                        </Link>
-                        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-yellow-300/40 to-fuchsia-500/30 border border-white/15" />
+                            <p className="text-xs font-medium opacity-80 mt-1">View transactions</p>
+                        </button>
                     </div>
                 </div>
 
-                {/* Hero Wallet Card */}
-                <div className="mt-8 bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 md:p-8 glow-border">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                        <div>
-                            <p className="text-gray-300">Total Earnings</p>
-                            <h2 className="text-5xl font-extrabold mt-2">
-                                <span className="text-green-300">₹</span>
-                                <span className="bg-gradient-to-r from-green-200 to-emerald-400 bg-clip-text text-transparent">
-                                    {user.balance}
-                                </span>
-                            </h2>
-
-                            <div className="mt-4 flex flex-wrap gap-3">
-                                <Badge label="AI Verified" />
-                                <Badge label={`${user.smiles} Smiles`} />
-                                <Badge label={`🔥 ${user.streak} Day Streak`} />
-                            </div>
-                        </div>
-
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => nav("/smile")}
-                                className="px-6 py-4 rounded-2xl bg-gradient-to-r from-yellow-300 to-orange-400 text-black font-extrabold hover:scale-[1.02] transition shadow-xl"
-                            >
-                                😊 Give a Smile
-                                <p className="text-xs font-medium opacity-80 mt-1">
-                                    Earn +₹10 (demo)
-                                </p>
-                            </button>
-
-                            <button
-                                onClick={() => nav("/withdraw")}
-                                className="px-6 py-4 rounded-2xl bg-gradient-to-r from-emerald-300 to-green-400 text-black font-extrabold hover:scale-[1.02] transition shadow-xl"
-                            >
-                                💰 Withdraw
-                                <p className="text-xs font-medium opacity-80 mt-1">
-                                    Min ₹100
-                                </p>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Stats Grid */}
+                { }
                 <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <StatCard
                         title="Today’s Limit"
-                        value={`${user.todaySmiles}/2 Smiles`}
-                        sub={`Next smile in ${user.nextSmileIn}`}
+                        value={`${data.todayCount}/2 Smiles`}
+                        sub={`Next allowed: ${data.nextIn}`}
                         accent="from-yellow-300/25 to-orange-500/10"
                     />
                     <StatCard
                         title="Streak Power"
-                        value={`${user.streak} Days 🔥`}
+                        value={`${data.streak} Days `}
                         sub="Keep smiling daily"
                         accent="from-fuchsia-500/20 to-purple-600/10"
                     />
                     <StatCard
-                        title="Smile History"
-                        value={`${user.smiles} Total`}
+                        title="Total Smiles"
+                        value={`${data.smiles}`}
                         sub="Consistency pays"
                         accent="from-emerald-400/18 to-cyan-500/10"
                     />
                 </div>
 
-                {/* Activity */}
-                <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-4">
-                    {/* Recent Activity */}
-                    <div className="lg:col-span-2 bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-6">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-xl font-bold">Recent Activity</h3>
-                            <button className="text-sm text-gray-300 hover:text-white underline underline-offset-4">
-                                View all
-                            </button>
-                        </div>
+                { }
+                <div className="mt-8 bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-6">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-xl font-bold">Recent Activity</h3>
+                    </div>
 
-                        <div className="mt-5 space-y-3">
-                            {activity.map((a, idx) => (
+                    <div className="mt-5 space-y-3">
+                        {data.activity.length ? (
+                            data.activity.map((a, idx) => (
                                 <div
                                     key={idx}
                                     className="flex items-center justify-between bg-black/25 border border-white/10 rounded-2xl p-4 hover:bg-black/35 transition"
@@ -142,51 +168,40 @@ export default function Dashboard() {
                                         <p className="font-semibold">{a.title}</p>
                                         <p className="text-xs text-gray-300 mt-1">{a.time}</p>
                                     </div>
-                                    <p
-                                        className={`font-extrabold ${a.amount.startsWith("+")
-                                            ? "text-green-300"
-                                            : "text-yellow-200"
-                                            }`}
-                                    >
+                                    <p className={`font-extrabold ${a.kind === "withdraw" ? "text-yellow-200" : "text-green-300"}`}>
                                         {a.amount}
                                     </p>
                                 </div>
-                            ))}
-                        </div>
+                            ))
+                        ) : (
+                            <p className="text-gray-300">No activity yet. Go to Smile Scan and earn your first reward </p>
+                        )}
                     </div>
+                </div>
 
-                    {/* Motivation Card */}
-                    <div className="bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 glow-border">
-                        <h3 className="text-xl font-bold">Today’s Mission</h3>
-                        <p className="text-gray-300 mt-2">
-                            Smile twice today and keep the streak alive.
-                        </p>
+                { }
+                <div className="mt-8 bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-6">
+                    <h3 className="text-xl font-bold mb-4">Achievements </h3>
 
-                        <div className="mt-5 bg-black/25 border border-white/10 rounded-2xl p-4">
-                            <p className="text-sm text-gray-300">Progress</p>
-                            <div className="mt-3 w-full h-3 bg-white/10 rounded-full overflow-hidden">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {data.achievements.all.map((a) => {
+                            const unlocked = data.achievements.unlocked.includes(a.id)
+
+                            return (
                                 <div
-                                    className="h-full bg-gradient-to-r from-yellow-300 to-orange-400"
-                                    style={{ width: `${(user.todaySmiles / 2) * 100}%` }}
-                                />
-                            </div>
-                            <p className="mt-3 text-sm">
-                                {user.todaySmiles === 2
-                                    ? "✅ Limit reached. Come back tomorrow!"
-                                    : `✅ ${2 - user.todaySmiles} smile left today`}
-                            </p>
-                        </div>
-
-                        <button
-                            onClick={() => nav("/smile")}
-                            className="mt-6 w-full py-4 rounded-2xl bg-white text-black font-extrabold hover:scale-[1.02] transition"
-                        >
-                            Start AI Scan ✨
-                        </button>
-
-                        <p className="mt-4 text-xs text-gray-400">
-                            Frontend demo — AI + rewards logic will be added next.
-                        </p>
+                                    key={a.id}
+                                    className={`rounded-2xl p-4 text-center border transition ${unlocked
+                                        ? "bg-gradient-to-br from-yellow-300/20 to-orange-400/10 border-yellow-300/30"
+                                        : "bg-black/25 border-white/10 opacity-50"
+                                        }`}
+                                >
+                                    <div className="text-3xl">{a.icon}</div>
+                                    <p className="mt-2 font-bold text-sm">{a.title}</p>
+                                    <p className="text-xs text-gray-300 mt-1">{a.desc}</p>
+                                    {unlocked && <p className="mt-2 text-xs text-green-300 font-semibold">Unlocked</p>}
+                                </div>
+                            )
+                        })}
                     </div>
                 </div>
             </div>
@@ -194,17 +209,15 @@ export default function Dashboard() {
     )
 }
 
-/* ---------------- Components (inside same file for simplicity) ---------------- */
-
-/* function Badge({ label }) {
+function Badge({ label }) {
     return (
         <span className="px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs text-gray-200">
             {label}
         </span>
     )
-} */
+}
 
-/* function StatCard({ title, value, sub, accent }) {
+function StatCard({ title, value, sub, accent }) {
     return (
         <div className="bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 relative overflow-hidden">
             <div className={`absolute inset-0 bg-gradient-to-br ${accent} blur-2xl`} />
@@ -215,4 +228,4 @@ export default function Dashboard() {
             </div>
         </div>
     )
-} */
+}

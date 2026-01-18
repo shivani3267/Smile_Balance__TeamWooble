@@ -80,7 +80,7 @@ export default function Dashboard() {
                                 onClick={() => nav("/smile")}
                                 className="px-6 py-4 rounded-2xl bg-gradient-to-r from-yellow-300 to-orange-400 text-black font-extrabold hover:scale-[1.02] transition shadow-xl"
                             >
-                                😊 Give a Smile
+                                 Give a Smile
                                 <p className="text-xs font-medium opacity-80 mt-1">
                                     Earn +₹10 (demo)
                                 </p>
@@ -90,7 +90,7 @@ export default function Dashboard() {
                                 onClick={() => nav("/withdraw")}
                                 className="px-6 py-4 rounded-2xl bg-gradient-to-r from-emerald-300 to-green-400 text-black font-extrabold hover:scale-[1.02] transition shadow-xl"
                             >
-                                💰 Withdraw
+                                 Withdraw
                                 <p className="text-xs font-medium opacity-80 mt-1">
                                     Min ₹100
                                 </p>

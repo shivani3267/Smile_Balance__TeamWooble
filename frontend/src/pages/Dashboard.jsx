@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+
 import {
     getUser,
     getSmiles,
     calcStreakDays,
-    todaysSmileCount,
     sixHourWaitLeftMs,
 } from "../utils/storage"
+
 import { getAchievements } from "../utils/achievements"
 
 export default function Dashboard() {
@@ -24,10 +25,18 @@ export default function Dashboard() {
     })
 
     const refresh = () => {
-        const u = getUser()
+        const u = getUser() || {}
         const smilesArr = getSmiles()
         const streak = calcStreakDays()
-        const todayCount = todaysSmileCount()
+
+        const todayKey = new Date().toISOString().slice(0, 10)
+
+        const todayCount = smilesArr.filter((s) => {
+            if (s.type === "withdraw") return false
+            const d = new Date(s.date || s.time)
+            if (isNaN(d)) return false
+            return d.toISOString().slice(0, 10) === todayKey
+        }).length
 
         const leftMs = sixHourWaitLeftMs()
         const mins = Math.ceil(leftMs / (60 * 1000))
@@ -42,7 +51,7 @@ export default function Dashboard() {
                 const isWithdraw = s.type === "withdraw"
                 return {
                     title: isWithdraw ? "Withdrawal Request" : "Smile Verified",
-                    time: new Date(s.time).toLocaleString(),
+                    time: new Date(s.time || s.date).toLocaleString(),
                     amount: isWithdraw ? `-₹${s.amount}` : `+₹${s.creditsEarned ?? 10}`,
                     kind: isWithdraw ? "withdraw" : "smile",
                 }
@@ -72,29 +81,27 @@ export default function Dashboard() {
             clearInterval(timer)
             window.removeEventListener("storage", onStorage)
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     return (
         <div className="min-h-screen relative overflow-hidden bg-[#070711] text-white">
-            { }
             <div className="absolute -top-32 -left-32 w-[520px] h-[520px] rounded-full bg-gradient-to-br from-yellow-300/25 to-orange-500/15 blur-3xl blob" />
             <div className="absolute top-40 -right-40 w-[640px] h-[640px] rounded-full bg-gradient-to-br from-fuchsia-500/20 to-purple-600/15 blur-3xl blob2" />
             <div className="absolute -bottom-56 left-24 w-[720px] h-[720px] rounded-full bg-gradient-to-br from-emerald-400/18 to-cyan-500/10 blur-3xl blob" />
             <div className="absolute inset-0 opacity-[0.12] bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.18)_1px,transparent_0)] [background-size:22px_22px]" />
 
             <div className="relative z-10 p-6 md:p-10 max-w-[1200px] mx-auto">
-                { }
                 <div className="flex items-start justify-between gap-4">
                     <div>
                         <p className="text-gray-300 text-sm">Welcome back</p>
-                        <h1 className="text-3xl md:text-4xl font-extrabold">{data.name} </h1>
-                        <p className="text-gray-300 mt-2 text-sm">AI-verified smiles update earnings instantly.</p>
+                        <h1 className="text-3xl md:text-4xl font-extrabold">{data.name}</h1>
+                        <p className="text-gray-300 mt-2 text-sm">
+                            AI-verified smiles update earnings instantly.
+                        </p>
                     </div>
                     <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-yellow-300/40 to-fuchsia-500/30 border border-white/15" />
                 </div>
 
-                { }
                 <div className="mt-8 bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 md:p-8 glow-border">
                     <p className="text-gray-300">Total Earnings</p>
                     <h2 className="text-5xl font-extrabold mt-2">
@@ -107,7 +114,7 @@ export default function Dashboard() {
                     <div className="mt-4 flex flex-wrap gap-3">
                         <Badge label="AI Verified" />
                         <Badge label={`${data.smiles} Smiles`} />
-                        <Badge label={` ${data.streak} Day Streak`} />
+                        <Badge label={`${data.streak} Day Streak`} />
                     </div>
 
                     <div className="mt-6 flex gap-3 flex-col md:flex-row">
@@ -124,12 +131,13 @@ export default function Dashboard() {
                             className="px-6 py-4 rounded-2xl bg-gradient-to-r from-emerald-300 to-green-400 text-black font-extrabold hover:scale-[1.02] transition shadow-xl"
                         >
                             Wallet
-                            <p className="text-xs font-medium opacity-80 mt-1">View transactions</p>
+                            <p className="text-xs font-medium opacity-80 mt-1">
+                                View transactions
+                            </p>
                         </button>
                     </div>
                 </div>
 
-                { }
                 <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <StatCard
                         title="Today’s Limit"
@@ -139,7 +147,7 @@ export default function Dashboard() {
                     />
                     <StatCard
                         title="Streak Power"
-                        value={`${data.streak} Days `}
+                        value={`${data.streak} Days`}
                         sub="Keep smiling daily"
                         accent="from-fuchsia-500/20 to-purple-600/10"
                     />
@@ -151,7 +159,6 @@ export default function Dashboard() {
                     />
                 </div>
 
-                { }
                 <div className="mt-8 bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-6">
                     <div className="flex items-center justify-between">
                         <h3 className="text-xl font-bold">Recent Activity</h3>
@@ -168,20 +175,24 @@ export default function Dashboard() {
                                         <p className="font-semibold">{a.title}</p>
                                         <p className="text-xs text-gray-300 mt-1">{a.time}</p>
                                     </div>
-                                    <p className={`font-extrabold ${a.kind === "withdraw" ? "text-yellow-200" : "text-green-300"}`}>
+                                    <p
+                                        className={`font-extrabold ${a.kind === "withdraw" ? "text-yellow-200" : "text-green-300"
+                                            }`}
+                                    >
                                         {a.amount}
                                     </p>
                                 </div>
                             ))
                         ) : (
-                            <p className="text-gray-300">No activity yet. Go to Smile Scan and earn your first reward </p>
+                            <p className="text-gray-300">
+                                No activity yet. Go to Smile Scan and earn your first reward
+                            </p>
                         )}
                     </div>
                 </div>
 
-                { }
                 <div className="mt-8 bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-6">
-                    <h3 className="text-xl font-bold mb-4">Achievements </h3>
+                    <h3 className="text-xl font-bold mb-4">Achievements</h3>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {data.achievements.all.map((a) => {
@@ -191,14 +202,18 @@ export default function Dashboard() {
                                 <div
                                     key={a.id}
                                     className={`rounded-2xl p-4 text-center border transition ${unlocked
-                                        ? "bg-gradient-to-br from-yellow-300/20 to-orange-400/10 border-yellow-300/30"
-                                        : "bg-black/25 border-white/10 opacity-50"
+                                            ? "bg-gradient-to-br from-yellow-300/20 to-orange-400/10 border-yellow-300/30"
+                                            : "bg-black/25 border-white/10 opacity-50"
                                         }`}
                                 >
                                     <div className="text-3xl">{a.icon}</div>
                                     <p className="mt-2 font-bold text-sm">{a.title}</p>
                                     <p className="text-xs text-gray-300 mt-1">{a.desc}</p>
-                                    {unlocked && <p className="mt-2 text-xs text-green-300 font-semibold">Unlocked</p>}
+                                    {unlocked && (
+                                        <p className="mt-2 text-xs text-green-300 font-semibold">
+                                            Unlocked
+                                        </p>
+                                    )}
                                 </div>
                             )
                         })}

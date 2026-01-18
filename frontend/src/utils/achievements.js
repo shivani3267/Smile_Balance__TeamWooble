@@ -1,5 +1,7 @@
 import { getSmiles, calcStreakDays } from "./storage"
 
+
+
 const ACHIEVEMENTS = [
     {
         id: "first_smile",

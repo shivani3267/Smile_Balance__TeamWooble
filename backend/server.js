@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
+import smileRoutes from "./routes/smileRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -12,6 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/smile", smileRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend is working!");

@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
+import User from "../models/userModel.js";
 
-export const protect = (req, res, next) => {
+export const protect = async (req, res, next) => {
   let token;
 
   if (
@@ -16,8 +17,15 @@ export const protect = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; 
-    next(); 
+
+    // fetch full user from database
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    req.user = user; // attach real user doc, not just token data
+    next();
   } catch (err) {
     return res.status(401).json({ message: "Not authorized, token invalid" });
   }

@@ -5,22 +5,22 @@ export default function Signup() {
 
     return (
         <div className="min-h-screen relative overflow-hidden bg-[#070711] text-white">
-            {/* Animated Orbs */}
+            { }
             <div className="absolute -top-28 right-10 w-[520px] h-[520px] rounded-full bg-gradient-to-br from-emerald-400/20 to-green-500/10 blur-3xl blob" />
             <div className="absolute top-32 -left-28 w-[520px] h-[520px] rounded-full bg-gradient-to-br from-yellow-300/25 to-orange-500/15 blur-3xl blob2" />
             <div className="absolute -bottom-48 right-24 w-[560px] h-[560px] rounded-full bg-gradient-to-br from-fuchsia-500/20 to-purple-600/15 blur-3xl blob" />
 
-            {/* Grid overlay */}
+            { }
             <div className="absolute inset-0 opacity-[0.12] bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.18)_1px,transparent_0)] [background-size:22px_22px]" />
 
             <div className="relative z-10 min-h-screen flex items-center justify-center p-6">
                 <div className="w-full max-w-[980px] grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                    {/* Left: Signup Card */}
+                    { }
                     <div className="bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 md:p-10 glow-border">
-                        <h2 className="text-2xl font-bold">Create your account 🚀</h2>
+                        <h2 className="text-2xl font-bold">Create your account </h2>
                         <p className="text-gray-300 mt-2 text-sm">
-                            Start earning with verified smiles — frontend demo.
+                            Start earning with verified smiles.
                         </p>
 
                         <button
@@ -74,7 +74,7 @@ export default function Signup() {
                         </p>
                     </div>
 
-                    {/* Right: Hype Panel */}
+                    { }
                     <div className="p-6 md:p-10 flex flex-col justify-center">
                         <h1 className="text-4xl md:text-5xl font-extrabold leading-tight">
                             Build a <span className="text-yellow-300">streak</span>.

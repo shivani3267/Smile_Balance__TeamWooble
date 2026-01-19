@@ -2,14 +2,9 @@ import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
-
-// Signup controller
 export const signup = async (req, res, next) => {
-
   try {
-    const fullName = req.body.fullName;
-    const email = req.body.email;
-    const password = req.body.password;
+    const { fullName, email, password } = req.body;
 
     if (!fullName || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
@@ -38,13 +33,11 @@ export const signup = async (req, res, next) => {
       token,
     });
   } catch (err) {
-    next(err); 
+    next(err);
   }
 };
 
-// Login controller
 export const login = async (req, res, next) => {
- 
   try {
     const { email, password } = req.body;
 
@@ -79,5 +72,18 @@ export const login = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+};
+
+export const getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("fullName email");
+
+    res.status(200).json({
+      message: "Profile fetched",
+      user,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 };

@@ -18,13 +18,24 @@ const userSchema = new mongoose.Schema({
     required: true,
     minlength: 6,
   },
+
+  //SMILE FEATURE
+  totalSmileCount: {
+    type: Number,
+    default: 0,
+  },
+  streak: {
+    type: Number,
+    default: 0,
+  },
+  lastSmileDate: {
+    type: String, // format YYYY-MM-DD
+    default: null,
+  },
 });
 
-
 userSchema.pre("save", async function () {
-
   if (!this.isModified("password")) return;
-
   this.password = await bcrypt.hash(this.password, 10);
 });
 

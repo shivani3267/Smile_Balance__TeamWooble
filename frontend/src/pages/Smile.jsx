@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import * as faceapi from "face-api.js"
+
+import { addSmile, getUser, setUser, getSmiles, sixHourWaitLeftMs } from "../utils/storage"
 
 export default function Smile() {
     const nav = useNavigate()
@@ -11,13 +14,31 @@ export default function Smile() {
     const [captured, setCaptured] = useState(null)
     const [status, setStatus] = useState("Ready for scan")
 
-    useEffect(() => {
+    const [modelsReady, setModelsReady] = useState(false)
+    const [scanLoading, setScanLoading] = useState(false)
+    const [smileScore, setSmileScore] = useState(null)
 
-        return () => {
-            stopCamera()
-        }
+    useEffect(() => {
+        loadModels()
+        return () => stopCamera()
 
     }, [])
+
+    const MODEL_URL = "https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights"
+
+    const loadModels = async () => {
+        try {
+            setStatus("Loading AI models...")
+            await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL)
+            await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL)
+            setModelsReady(true)
+            setStatus("Models ready  Start camera or upload")
+        } catch (e) {
+            console.error(e)
+            setModelsReady(false)
+            setStatus("AI load failed • Check internet or try again")
+        }
+    }
 
     const startCamera = async () => {
         try {
@@ -33,7 +54,7 @@ export default function Smile() {
                 await videoRef.current.play()
             }
             setIsCameraOn(true)
-            setStatus("Camera ready • Show your best smile 😊")
+            setStatus("Camera ready • Show your best smile ")
         } catch (err) {
             console.error(err)
             setStatus("Camera blocked • Please allow permission or use Upload")
@@ -43,12 +64,8 @@ export default function Smile() {
 
     const stopCamera = () => {
         try {
-            if (stream) {
-                stream.getTracks().forEach((t) => t.stop())
-            }
-        } catch (e) {
-
-        }
+            if (stream) stream.getTracks().forEach((t) => t.stop())
+        } catch (e) { }
         setStream(null)
         setIsCameraOn(false)
     }
@@ -65,11 +82,13 @@ export default function Smile() {
 
         const data = canvas.toDataURL("image/png")
         setCaptured(data)
-        setStatus("Captured ✅ ")
+        setSmileScore(null)
+        setStatus("Captured ")
     }
 
     const resetCapture = () => {
         setCaptured(null)
+        setSmileScore(null)
         setStatus("Ready for scan")
     }
 
@@ -78,30 +97,112 @@ export default function Smile() {
         if (!file) return
         const url = URL.createObjectURL(file)
         setCaptured(url)
-        setStatus("Uploaded ✅")
+        setSmileScore(null)
+        setStatus("Uploaded ")
+    }
+
+    const getTodayCount = () => {
+        const arr = getSmiles()
+        const todayKey = new Date().toISOString().slice(0, 10)
+
+        return arr.filter((s) => {
+            if (s.type === "withdraw") return false
+            const d = new Date(s.date || s.time)
+            if (isNaN(d)) return false
+            return d.toISOString().slice(0, 10) === todayKey
+        }).length
+    }
+
+    const canScanNow = () => {
+        const todayCount = getTodayCount()
+        const left = sixHourWaitLeftMs()
+        if (todayCount >= 2) return { ok: false, msg: "Daily limit reached (2/day)" }
+        if (left > 0) return { ok: false, msg: "Wait 6 hours between smiles" }
+        return { ok: true, msg: "" }
+    }
+
+    const startScan = async () => {
+        if (!modelsReady) {
+            setStatus("AI not ready • Check internet")
+            return
+        }
+        if (!captured) {
+            setStatus("Capture or upload a selfie first")
+            return
+        }
+
+        const gate = canScanNow()
+        if (!gate.ok) {
+            setStatus(gate.msg)
+            return
+        }
+
+        try {
+            setScanLoading(true)
+            setStatus("Scanning...")
+            setSmileScore(null)
+
+            const img = await faceapi.fetchImage(captured)
+
+            const result = await faceapi
+                .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
+                .withFaceExpressions()
+
+            if (!result) {
+                setStatus("No face found  Try clearer selfie")
+                setScanLoading(false)
+                return
+            }
+
+            const happy = result.expressions?.happy ?? 0
+            setSmileScore(happy)
+
+            const THRESHOLD = 0.6
+            if (happy < THRESHOLD) {
+                setStatus(`Smile not strong enough  Score: ${happy.toFixed(2)}`)
+                setScanLoading(false)
+                return
+            }
+
+            const earned = 10
+            const nowIso = new Date().toISOString()
+
+            addSmile({
+                type: "smile",
+                date: nowIso,
+                time: Date.now(),
+                happyScore: happy,
+                creditsEarned: earned,
+            })
+
+            const u = getUser() || { name: "Shivam", credits: 0 }
+            setUser({ ...u, credits: (u.credits || 0) + earned })
+
+            setStatus(`Verified  Score: ${happy.toFixed(2)} • +₹${earned}`)
+            setScanLoading(false)
+
+            setTimeout(() => nav("/dashboard"), 700)
+        } catch (e) {
+            console.error(e)
+            setStatus("Scan failed • Try again")
+            setScanLoading(false)
+        }
     }
 
     return (
         <div className="min-h-screen relative overflow-hidden bg-[#070711] text-white">
-            { }
             <div className="absolute -top-32 -left-32 w-[520px] h-[520px] rounded-full bg-gradient-to-br from-yellow-300/25 to-orange-500/15 blur-3xl blob" />
             <div className="absolute top-40 -right-40 w-[640px] h-[640px] rounded-full bg-gradient-to-br from-fuchsia-500/20 to-purple-600/15 blur-3xl blob2" />
             <div className="absolute -bottom-56 left-24 w-[720px] h-[720px] rounded-full bg-gradient-to-br from-emerald-400/18 to-cyan-500/10 blur-3xl blob" />
-
-            { }
             <div className="absolute inset-0 opacity-[0.12] bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.18)_1px,transparent_0)] [background-size:22px_22px]" />
 
             <div className="relative z-10 p-6 md:p-10 max-w-[1200px] mx-auto">
-                { }
                 <div className="flex items-center justify-between">
                     <div>
                         <p className="text-gray-300 text-sm">Smile Scan</p>
-                        <h1 className="text-3xl md:text-4xl font-extrabold">
-                            AI Camera Verification
-                        </h1>
+                        <h1 className="text-3xl md:text-4xl font-extrabold">AI Camera Verification</h1>
                         <p className="text-gray-300 mt-2 text-sm max-w-xl">
-                            capture a selfie using camera or upload. Next step AI
-                            smile detection.
+                            Capture a selfie using camera or upload. Next step AI smile detection.
                         </p>
                     </div>
 
@@ -114,7 +215,6 @@ export default function Smile() {
                 </div>
 
                 <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-4">
-                    { }
                     <div className="lg:col-span-2 bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-5 md:p-7 glow-border relative overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-br from-yellow-300/10 via-transparent to-fuchsia-500/10 blur-2xl" />
 
@@ -126,7 +226,7 @@ export default function Smile() {
                                             }`}
                                     />
                                     <p className="text-sm text-gray-200 font-semibold">
-                                        {status}
+                                        {status} {!modelsReady ? "(AI not ready)" : ""}
                                     </p>
                                 </div>
 
@@ -135,6 +235,7 @@ export default function Smile() {
                                         <button
                                             onClick={startCamera}
                                             className="px-4 py-2 rounded-2xl bg-white text-black font-extrabold hover:scale-[1.02] transition"
+                                            disabled={!modelsReady}
                                         >
                                             Start Camera
                                         </button>
@@ -149,19 +250,12 @@ export default function Smile() {
 
                                     <label className="px-4 py-2 rounded-2xl bg-white/10 border border-white/15 font-extrabold hover:bg-white/15 transition cursor-pointer">
                                         Upload
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            className="hidden"
-                                            onChange={onUpload}
-                                        />
+                                        <input type="file" accept="image/*" className="hidden" onChange={onUpload} />
                                     </label>
                                 </div>
                             </div>
 
-                            { }
                             <div className="mt-5 relative rounded-3xl overflow-hidden border border-white/15 bg-black/40">
-                                { }
                                 <div className="pointer-events-none absolute inset-0">
                                     <div className="absolute top-4 left-4 w-10 h-10 border-l-2 border-t-2 border-yellow-300/70 rounded-tl-2xl" />
                                     <div className="absolute top-4 right-4 w-10 h-10 border-r-2 border-t-2 border-fuchsia-400/60 rounded-tr-2xl" />
@@ -169,34 +263,21 @@ export default function Smile() {
                                     <div className="absolute bottom-4 right-4 w-10 h-10 border-r-2 border-b-2 border-cyan-300/60 rounded-br-2xl" />
                                 </div>
 
-                                { }
                                 <div className="aspect-square w-full flex items-center justify-center">
                                     {!captured ? (
-                                        <video
-                                            ref={videoRef}
-                                            className="w-full h-full object-cover"
-                                            playsInline
-                                            muted
-                                        />
+                                        <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
                                     ) : (
-                                        <img
-                                            src={captured}
-                                            alt="captured"
-                                            className="w-full h-full object-cover"
-                                        />
+                                        <img src={captured} alt="captured" className="w-full h-full object-cover" />
                                     )}
                                 </div>
 
-                                { }
                                 <div className="pointer-events-none absolute left-0 right-0 top-0 h-full">
                                     <div className="scanline absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-yellow-300 to-transparent opacity-70" />
                                 </div>
 
-                                { }
                                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_45%,rgba(0,0,0,0.55)_100%)]" />
                             </div>
 
-                            { }
                             <div className="mt-5 flex flex-col md:flex-row gap-3">
                                 <button
                                     onClick={capture}
@@ -204,9 +285,7 @@ export default function Smile() {
                                     disabled={!isCameraOn || !!captured}
                                 >
                                     Capture Selfie
-                                    <p className="text-xs font-medium opacity-80 mt-1">
-                                        (Requires camera on)
-                                    </p>
+                                    <p className="text-xs font-medium opacity-80 mt-1">(Requires camera on)</p>
                                 </button>
 
                                 <button
@@ -218,55 +297,50 @@ export default function Smile() {
                                 </button>
                             </div>
 
-                            { }
                             <canvas ref={canvasRef} className="hidden" />
                         </div>
                     </div>
 
-                    { }
                     <div className="bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-6">
                         <h3 className="text-xl font-bold">AI Scan Panel</h3>
-                        <p className="text-gray-300 text-sm mt-2">
-                            This is the “wow” part. Next step: real smile detection.
-                        </p>
 
                         <div className="mt-5 space-y-3">
                             <InfoCard
-                                title="Verification"
-                                value={captured ? "Ready to Scan ✅" : "Waiting for selfie…"}
+                                title="AI Models"
+                                value={modelsReady ? "Loaded " : "Loading/Failed "}
                                 accent="from-yellow-300/20 to-orange-500/10"
                             />
                             <InfoCard
-                                title="Daily Limit"
-                                value="2 smiles/day"
+                                title="Verification"
+                                value={captured ? "Ready to Scan ✅" : "Waiting for selfie…"}
                                 accent="from-fuchsia-500/18 to-purple-600/10"
                             />
                             <InfoCard
-                                title="Gap Rule"
-                                value="6-hour gap"
+                                title="Smile Score"
+                                value={smileScore == null ? "—" : smileScore.toFixed(2)}
                                 accent="from-emerald-400/16 to-cyan-500/10"
                             />
                         </div>
 
                         <button
-                            className={`mt-6 w-full py-4 rounded-2xl font-extrabold transition ${captured
+                            className={`mt-6 w-full py-4 rounded-2xl font-extrabold transition ${captured && modelsReady && !scanLoading
                                 ? "bg-white text-black hover:scale-[1.02]"
                                 : "bg-white/10 text-gray-400 cursor-not-allowed"
                                 }`}
-                            disabled={!captured}
-                            onClick={() => setStatus("Scanning... (UI demo)")}
+                            disabled={!captured || !modelsReady || scanLoading}
+                            onClick={startScan}
                         >
-                            Start AI Scan
+                            {scanLoading ? "Scanning..." : "Start AI Scan"}
                         </button>
 
                         <p className="mt-4 text-xs text-gray-400">
-                            Tip: Camera works on localhost. On mobile, use HTTPS or LAN IP.
+                            This loads models from CDN (no local model files). Needs internet.
                         </p>
+
                     </div>
                 </div>
             </div>
 
-            { }
             <style>{`
         @keyframes scan {
           0% { transform: translateY(-10%); opacity: 0.0; }
@@ -275,10 +349,7 @@ export default function Smile() {
           90% { opacity: 0.75; }
           100% { transform: translateY(110%); opacity: 0.0; }
         }
-        .scanline {
-          animation: scan 2.2s linear infinite;
-          top: 0;
-        }
+        .scanline { animation: scan 2.2s linear infinite; top: 0; }
       `}</style>
         </div>
     )

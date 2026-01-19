@@ -16,7 +16,7 @@ export default function Withdraw() {
     const refresh = () => {
         const u = getUser()
         const s = getSmiles()
-        setCredits(u.credits || 0)
+        setCredits(u?.credits || 0)
         setSmilesState(s)
     }
 
@@ -89,7 +89,7 @@ export default function Withdraw() {
                         <p className="text-gray-300 text-sm">Wallet</p>
                         <h1 className="text-3xl md:text-4xl font-extrabold">Your Balance 💳</h1>
                         <p className="text-gray-300 mt-2 text-sm">
-                            Live data from localStorage • Credits are treated as ₹ (demo)
+                            Credits are ₹
                         </p>
                     </div>
 
@@ -122,7 +122,7 @@ export default function Withdraw() {
                                 <Badge label="Instant (Demo)" />
                             </div>
 
-                            {/* Conversion */}
+                            { }
                             <div className="mt-7 bg-black/25 border border-white/10 rounded-2xl p-5">
                                 <p className="text-sm text-gray-300">Conversion</p>
                                 <div className="mt-3 flex items-center justify-between">
@@ -131,7 +131,7 @@ export default function Withdraw() {
                                     <p className="text-green-300 font-extrabold">₹1</p>
                                 </div>
                                 <p className="mt-3 text-xs text-gray-400">
-                                    Demo conversion for hackathon UI.
+
                                 </p>
                             </div>
                         </div>
@@ -141,7 +141,7 @@ export default function Withdraw() {
                     <div className="bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-6">
                         <h3 className="text-xl font-bold">Withdraw</h3>
                         <p className="text-gray-300 text-sm mt-2">
-                            Frontend demo: creates a wallet transaction and updates balance.
+                            Wallet transaction and updates balance.
                         </p>
 
                         <div className="mt-5 space-y-3">
@@ -188,9 +188,7 @@ export default function Withdraw() {
                                     </span>
                                 )}
                             </p>
-                            <p className="mt-2 text-xs text-gray-400">
-                                This is UI-only. Add backend later for real payouts.
-                            </p>
+
                         </div>
                     </div>
                 </div>
@@ -239,7 +237,7 @@ export default function Withdraw() {
                     </div>
                 </div>
 
-                {/* Bottom CTA */}
+                { }
                 <div className="mt-6 flex flex-col md:flex-row gap-3">
                     <button
                         onClick={() => nav("/smile")}

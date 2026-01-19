@@ -52,7 +52,18 @@ export default function Dashboard() {
                         >
                             Wallet
                         </Link>
-                        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-yellow-300/40 to-fuchsia-500/30 border border-white/15" />
+                        <button
+                            onClick={() => {
+                            localStorage.removeItem("token");
+                            nav("/login");
+                            }}
+                            className="w-24 h-11 p-2 rounded-3xl text-center
+                            bg-gradient-to-br from-yellow-300/40 to-fuchsia-500/30
+                            border border-white/15 hover:scale-105 transition cursor-pointer"
+                            >
+                            LogOut
+                        </button>
+
                     </div>
                 </div>
 

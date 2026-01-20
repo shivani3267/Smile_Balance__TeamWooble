@@ -1,11 +1,20 @@
+import crypto from "crypto";
+import User from "../models/userModel.js";
 
+// ✅ Reward Logic
+const getReward = (totalSmileCount) => {
+  if (totalSmileCount <= 2) return Math.floor(Math.random() * 41) + 80; // 80–120
+  if (totalSmileCount <= 5) return Math.floor(Math.random() * 31) + 30; // 30–60
+  return Math.floor(Math.random() * 20) + 1; // 1–20
+};
+
+// ✅ ADD SMILE (upload + hash + update stats)
 export const addSmile = async (req, res) => {
   try {
-    console.log("===== AddSmile Called =====");
-    console.log("req.user:", req.user);
-
     if (!req.file) {
-      return res.status(400).json({ message: "No image provided for verification." });
+      return res
+        .status(400)
+        .json({ message: "No image provided for verification." });
     }
 
     if (!req.user) {
@@ -24,70 +33,92 @@ export const addSmile = async (req, res) => {
 
     const today = new Date().toISOString().split("T")[0];
 
-    //Duplicate check
+    // ✅ Prevent duplicate image
     if (user.smileHashes.includes(imageHash)) {
-      return res.status(400).json({ message: "This smile has already been verified!" });
+      return res
+        .status(400)
+        .json({ message: "This smile has already been verified!" });
     }
 
-    
-    if (user.lastSmileDate !== today) user.todaySmileCount = 0;
+    // ✅ Reset today count if new day
+    if (user.lastSmileDate !== today) {
+      user.todaySmileCount = 0;
+    }
 
-    
+    // ✅ Daily limit 2/day
     if (user.todaySmileCount >= 2) {
       return res.status(400).json({ message: "Daily limit reached." });
     }
 
-
     user.totalSmileCount += 1;
     user.todaySmileCount += 1;
 
-  
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+    // ✅ Streak logic
+    const yesterday = new Date(Date.now() - 86400000)
+      .toISOString()
+      .split("T")[0];
+
     if (user.lastSmileDate === yesterday) user.streak += 1;
     else if (user.lastSmileDate !== today) user.streak = 1;
 
     user.lastSmileDate = today;
 
-  
+    // ✅ Store hash
     user.smileHashes.push(imageHash);
-    user.balance += 10;
 
+    // ✅ Reward
+    const reward = getReward(user.totalSmileCount);
+    user.balance += reward;
 
+    // ✅ Activity
     user.activity.push({
       action: "smile",
       time: new Date(),
-      creditsEarned: 10,
+      creditsEarned: reward,
     });
 
     await user.save();
 
-    return res.json({
-      message: "Smile verified and ₹10 added!",
+    return res.status(200).json({
+      message: `Smile verified and ₹${reward} added!`,
       totalSmileCount: user.totalSmileCount,
       todaySmileCount: user.todaySmileCount,
       streak: user.streak,
       balance: user.balance,
+      reward,
       activity: user.activity.slice(-6).reverse(),
     });
   } catch (err) {
     console.error("AddSmile Error:", err);
-    res.status(500).json({ message: "Internal server error", error: err.message });
+    return res
+      .status(500)
+      .json({ message: "Internal server error", error: err.message });
   }
 };
 
+// ✅ GET STATS (Dashboard)
 export const getStats = async (req, res) => {
   try {
-    const userId = req.user._id;
+    if (!req.user) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    const userId = req.user.id || req.user._id;
 
     const user = await User.findById(userId).select(
-      "fullName email totalSmileCount todaySmileCount streak balance activity"
+      "fullName email balance streak totalSmileCount todaySmileCount activity"
     );
+
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     return res.status(200).json({
       message: "Stats fetched",
       user,
     });
   } catch (err) {
-    return res.status(500).json({ message: "Server error", error: err.message });
+    console.error("GetStats Error:", err);
+    return res
+      .status(500)
+      .json({ message: "Internal server error", error: err.message });
   }
 };

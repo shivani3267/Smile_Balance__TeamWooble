@@ -1,9 +1,13 @@
 import express from "express";
+import multer from "multer";
 import { addSmile } from "../controllers/smileController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/add", protect, addSmile);
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
+router.post("/add", protect, upload.single("image"), addSmile);
 
 export default router;

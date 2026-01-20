@@ -32,9 +32,15 @@ export const signup = async (req, res, next) => {
       },
       token,
     });
-  } catch (err) {
-    next(err);
+  }  catch (err) {
+    console.error("SIGNUP ERROR:", err);
+    res.status(500).json({
+      message: "Signup failed",
+      error: err.message,
+      stack: err.stack
+    });
   }
+  
 };
 
 export const login = async (req, res, next) => {
@@ -70,9 +76,15 @@ export const login = async (req, res, next) => {
       },
       token,
     });
-  } catch (err) {
-    next(err);
+  }  catch (err) {
+    console.error("LOGIN ERROR:", err);
+    return res.status(500).json({
+      message: "Login failed",
+      error: err.message,
+      stack: err.stack,
+    });
   }
+  
 };
 
 export const getProfile = async (req, res) => {

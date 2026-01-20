@@ -86,13 +86,11 @@ export const login = async (req, res, next) => {
   }
   
 };
-
 export const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select(
-      "fullName email balance streak totalSmileCount todaySmileCount activity"
+      "fullName email balance streak totalSmileCount todaySmileCount activity lastSmileTime"
     );
-    
 
     res.status(200).json({
       message: "Profile fetched",
@@ -102,3 +100,4 @@ export const getProfile = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+

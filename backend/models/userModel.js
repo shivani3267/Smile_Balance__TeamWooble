@@ -13,6 +13,9 @@ const userSchema = new mongoose.Schema({
   streak: { type: Number, default: 0 },
   lastSmileDate: { type: String, default: null },
 
+  // ✅ NEW: Store last smile time (for 6-hour timer)
+  lastSmileTime: { type: Date, default: null },
+
   // Store image hashes to prevent duplicate uploads
   smileHashes: [{ type: String }],
 

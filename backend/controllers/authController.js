@@ -89,7 +89,10 @@ export const login = async (req, res, next) => {
 
 export const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("fullName email");
+    const user = await User.findById(req.user.id).select(
+      "fullName email balance streak totalSmileCount todaySmileCount activity"
+    );
+    
 
     res.status(200).json({
       message: "Profile fetched",

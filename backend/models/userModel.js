@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema({
   streak: { type: Number, default: 0 },
   lastSmileDate: { type: String, default: null },
 
-  // ✅ NEW: Store last smile time (for 6-hour timer)
+  //  NEW: Store last smile time (for 6-hour timer)
   lastSmileTime: { type: Date, default: null },
 
   // Store image hashes to prevent duplicate uploads
@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema({
   ],
 });
 
-// ✅ Hash password before saving (Mongoose v8 safe)
+//  Hash password before saving (Mongoose v8 safe)
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
   this.password = await bcrypt.hash(this.password, 10);

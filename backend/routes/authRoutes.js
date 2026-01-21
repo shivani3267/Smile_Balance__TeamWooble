@@ -7,7 +7,7 @@ const router = express.Router();
 router.post("/signup", signup);
 router.post("/login", login);
 
-// NEW ROUTE — protected
+// protected
 router.get("/profile", protect, getProfile);
 
 export default router;

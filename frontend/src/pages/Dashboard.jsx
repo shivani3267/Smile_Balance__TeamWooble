@@ -367,7 +367,7 @@ export default function Dashboard() {
         <div className="mt-8 bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 md:p-8 glow-border">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
-              <p className="text-gray-300">Total Earnings</p>
+              <p className="text-gray-300">Total Rewards</p>
               <h2 className="text-5xl font-extrabold mt-2">
                 <span className="text-green-300">🪙</span>
                 <span className="bg-gradient-to-r from-green-200 to-emerald-400 bg-clip-text text-transparent">
@@ -388,7 +388,7 @@ export default function Dashboard() {
                 className="px-6 py-4 rounded-2xl bg-gradient-to-r from-yellow-300 to-orange-400 text-black font-extrabold hover:scale-[1.02] transition shadow-xl"
               >
                 Give a Smile
-                <p className="text-xs font-medium opacity-80 mt-1">Earn rewards</p>
+                <p className="text-xs font-medium opacity-80 mt-1">Earn Rewards</p>
               </button>
 
               <button
@@ -396,7 +396,7 @@ export default function Dashboard() {
                 className="px-6 py-4 rounded-2xl bg-gradient-to-r from-emerald-300 to-green-400 text-black font-extrabold hover:scale-[1.02] transition shadow-xl"
               >
                 Withdraw
-                <p className="text-xs font-medium opacity-80 mt-1">Min ₹100</p>
+                <p className="text-xs font-medium opacity-80 mt-1">Min 1000🪙</p>
               </button>
             </div>
           </div>

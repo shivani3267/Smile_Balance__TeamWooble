@@ -1,5 +1,6 @@
 
 
+
 // import { Link, useNavigate } from "react-router-dom";
 // import { useEffect, useState } from "react";
 // import Badge from "../components/ui/Badge";
@@ -10,6 +11,26 @@
 //   const nav = useNavigate();
 //   const [user, setUser] = useState(null);
 //   const [loading, setLoading] = useState(true);
+
+//   // ✅ Format milliseconds -> "02h 15m"
+//   const formatMs = (ms) => {
+//     const totalMinutes = Math.ceil(ms / 60000);
+//     const h = Math.floor(totalMinutes / 60);
+//     const m = totalMinutes % 60;
+//     return `${String(h).padStart(2, "0")}h ${String(m).padStart(2, "0")}m`;
+//   };
+
+//   // ✅ Calculate next smile time from DB lastSmileTime
+//   const getNextSmileIn = (lastSmileTime) => {
+//     if (!lastSmileTime) return "Now";
+
+//     const SIX_HOURS = 6 * 60 * 60 * 1000;
+//     const last = new Date(lastSmileTime).getTime();
+//     const left = SIX_HOURS - (Date.now() - last);
+
+//     if (left <= 0) return "Now";
+//     return formatMs(left);
+//   };
 
 //   useEffect(() => {
 //     const loadUser = async () => {
@@ -51,17 +72,15 @@
 //     );
 //   }
 
-//   // ✅ DB field mapping fixed
 //   const userData = {
 //     name: user?.fullName || "User",
 //     balance: user?.balance ?? 0,
 //     smiles: user?.totalSmileCount ?? 0,
 //     streak: user?.streak ?? 0,
 //     todaySmiles: user?.todaySmileCount ?? 0,
-//     nextSmileIn: "02h 18m", // static for now (you can make dynamic later)
+//     nextSmileIn: getNextSmileIn(user?.lastSmileTime),
 //   };
 
-//   // ✅ Recent activity from DB (fallback to empty)
 //   const activity = (user?.activity || []).slice(-6).reverse();
 
 //   return (
@@ -107,10 +126,9 @@
 //         <div className="mt-8 bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 md:p-8 glow-border">
 //           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
 //             <div>
-//               <p className="text-gray-300">Total Earnings</p>
-
+//               <p className="text-gray-300">Total Rewards</p>
 //               <h2 className="text-5xl font-extrabold mt-2">
-//                 <span className="text-green-300">₹</span>
+//                 <span className="text-green-300">🪙</span>
 //                 <span className="bg-gradient-to-r from-green-200 to-emerald-400 bg-clip-text text-transparent">
 //                   {userData.balance}
 //                 </span>
@@ -129,7 +147,7 @@
 //                 className="px-6 py-4 rounded-2xl bg-gradient-to-r from-yellow-300 to-orange-400 text-black font-extrabold hover:scale-[1.02] transition shadow-xl"
 //               >
 //                 Give a Smile
-//                 <p className="text-xs font-medium opacity-80 mt-1">Earn +₹10</p>
+//                 <p className="text-xs font-medium opacity-80 mt-1">Earn Rewards</p>
 //               </button>
 
 //               <button
@@ -137,7 +155,7 @@
 //                 className="px-6 py-4 rounded-2xl bg-gradient-to-r from-emerald-300 to-green-400 text-black font-extrabold hover:scale-[1.02] transition shadow-xl"
 //               >
 //                 Withdraw
-//                 <p className="text-xs font-medium opacity-80 mt-1">Min ₹100</p>
+//                 <p className="text-xs font-medium opacity-80 mt-1">Min 1000🪙</p>
 //               </button>
 //             </div>
 //           </div>
@@ -187,9 +205,7 @@
 //                     className="flex items-center justify-between bg-black/25 border border-white/10 rounded-2xl p-4 hover:bg-black/35 transition"
 //                   >
 //                     <div>
-//                       <p className="font-semibold">
-//                         {a.action || "Activity"}
-//                       </p>
+//                       <p className="font-semibold">{a.action || "Activity"}</p>
 //                       <p className="text-xs text-gray-300 mt-1">
 //                         {a.time ? new Date(a.time).toLocaleString() : ""}
 //                       </p>
@@ -240,8 +256,6 @@
 //   );
 // }
 
-
-
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Badge from "../components/ui/Badge";
@@ -251,6 +265,7 @@ import TopBar from "../components/layout/TopBar";
 export default function Dashboard() {
   const nav = useNavigate();
   const [user, setUser] = useState(null);
+  const [badges, setBadges] = useState([]); // ✅ NEW
   const [loading, setLoading] = useState(true);
 
   // ✅ Format milliseconds -> "02h 15m"
@@ -287,13 +302,16 @@ export default function Dashboard() {
 
         if (!res.ok) {
           localStorage.removeItem("token");
+          localStorage.removeItem("user");
           return nav("/login");
         }
 
         setUser(data.user);
+        setBadges(data.badges || []); // ✅ NEW
       } catch (err) {
         console.error("Failed to fetch user:", err);
         localStorage.removeItem("token");
+        localStorage.removeItem("user");
         nav("/login");
       } finally {
         setLoading(false);
@@ -326,7 +344,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#070711] text-white">
-      {/* Animated Orbs Background */}
+      {/* Background */}
       <div className="absolute -top-32 -left-32 w-[520px] h-[520px] rounded-full bg-gradient-to-br from-yellow-300/25 to-orange-500/15 blur-3xl blob" />
       <div className="absolute top-40 -right-40 w-[640px] h-[640px] rounded-full bg-gradient-to-br from-fuchsia-500/20 to-purple-600/15 blur-3xl blob2" />
       <div className="absolute -bottom-56 left-24 w-[720px] h-[720px] rounded-full bg-gradient-to-br from-emerald-400/18 to-cyan-500/10 blur-3xl blob" />
@@ -354,6 +372,7 @@ export default function Dashboard() {
             <button
               onClick={() => {
                 localStorage.removeItem("token");
+                localStorage.removeItem("user");
                 nav("/login");
               }}
               className="w-24 h-11 rounded-3xl bg-gradient-to-br from-yellow-300/40 to-fuchsia-500/30 border border-white/15 hover:scale-105 transition"
@@ -363,22 +382,41 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Hero Wallet Card */}
+        {/* Wallet Card */}
         <div className="mt-8 bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 md:p-8 glow-border">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
-              <p className="text-gray-300">Total Rewards</p>
+              <p className="text-gray-300">Total Earnings</p>
               <h2 className="text-5xl font-extrabold mt-2">
-                <span className="text-green-300">🪙</span>
+                <span className="text-green-300">₹</span>
                 <span className="bg-gradient-to-r from-green-200 to-emerald-400 bg-clip-text text-transparent">
                   {userData.balance}
                 </span>
               </h2>
 
+              {/* Default badges */}
               <div className="mt-4 flex flex-wrap gap-3">
                 <Badge label="AI Verified" />
                 <Badge label={`${userData.smiles} Smiles`} />
                 <Badge label={`🔥 ${userData.streak} Day Streak`} />
+              </div>
+
+              {/* ✅ NEW: Streak Badges from backend */}
+              <div className="mt-4 flex flex-wrap gap-2">
+                {badges.length === 0 ? (
+                  <p className="text-xs text-gray-400">
+                    No badges yet. Upload your first smile 😊
+                  </p>
+                ) : (
+                  badges.map((b, idx) => (
+                    <span
+                      key={idx}
+                      className="px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs text-gray-200"
+                    >
+                       {b.icon} {b.name}
+                    </span>
+                  ))
+                )}
               </div>
             </div>
 
@@ -388,7 +426,9 @@ export default function Dashboard() {
                 className="px-6 py-4 rounded-2xl bg-gradient-to-r from-yellow-300 to-orange-400 text-black font-extrabold hover:scale-[1.02] transition shadow-xl"
               >
                 Give a Smile
-                <p className="text-xs font-medium opacity-80 mt-1">Earn Rewards</p>
+                <p className="text-xs font-medium opacity-80 mt-1">
+                  Earn rewards
+                </p>
               </button>
 
               <button
@@ -396,7 +436,7 @@ export default function Dashboard() {
                 className="px-6 py-4 rounded-2xl bg-gradient-to-r from-emerald-300 to-green-400 text-black font-extrabold hover:scale-[1.02] transition shadow-xl"
               >
                 Withdraw
-                <p className="text-xs font-medium opacity-80 mt-1">Min 1000🪙</p>
+                <p className="text-xs font-medium opacity-80 mt-1">Min ₹100</p>
               </button>
             </div>
           </div>
@@ -424,7 +464,7 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Activity & Mission Section */}
+        {/* Activity */}
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-6">
             <div className="flex items-center justify-between">
@@ -446,12 +486,13 @@ export default function Dashboard() {
                     className="flex items-center justify-between bg-black/25 border border-white/10 rounded-2xl p-4 hover:bg-black/35 transition"
                   >
                     <div>
-                      <p className="font-semibold">{a.action || "Activity"}</p>
+                      <p className="font-semibold">
+                        {a.action === "smile" ? "Smile Verified" : a.action}
+                      </p>
                       <p className="text-xs text-gray-300 mt-1">
                         {a.time ? new Date(a.time).toLocaleString() : ""}
                       </p>
                     </div>
-
                     <p className="font-extrabold text-green-300">
                       +₹{a.creditsEarned ?? 0}
                     </p>

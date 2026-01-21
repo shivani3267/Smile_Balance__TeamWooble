@@ -1,6 +1,8 @@
 import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import { getBadges } from "../utils/badgeUtils.js";
+
 
 export const signup = async (req, res, next) => {
   try {
@@ -92,12 +94,22 @@ export const getProfile = async (req, res) => {
       "fullName email balance streak totalSmileCount todaySmileCount activity lastSmileTime"
     );
 
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // ✅ badges based on streak
+    const badges = getBadges(user);
+
     res.status(200).json({
       message: "Profile fetched",
       user,
+      badges,
     });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+
+
 

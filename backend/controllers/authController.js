@@ -2,6 +2,8 @@ import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { getBadges } from "../utils/badgeUtils.js";
+import sendMail from "../config/sendEmail.js";
+import Otp from "../models/otp.model.js";
 
 
 export const signup = async (req, res, next) => {
@@ -111,5 +113,28 @@ export const getProfile = async (req, res) => {
   }
 };
 
+
+//Forgot Password-------------------------------------------------
+export const handleForgotPassword = async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User Not Found" });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000);
+
+    await Otp.create({ email, otp });
+
+    const message = `Your verification code for password reset is ${otp}`;
+    await sendMail(email, "Reset Password", message);
+
+    return res.status(200).json({ message: "OTP sent to your email" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
 

@@ -138,3 +138,41 @@ export const handleForgotPassword = async (req, res) => {
 };
 
 
+export const handleVerifyOtp = async (req, res) => {
+  const { email, otp } = req.body;
+  try {
+    const record = await Otp.findOne({ email, otp });
+    if (!record) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    return res.status(200).json({ message: "OTP verified successfully" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+export const handleResetPassword = async (req, res) => {
+  const { email, otp, newPass } = req.body;
+  try {
+    const record = await Otp.findOne({ email, otp });
+    if (!record) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User doesn't exist" });
+    }
+
+    user.password = await bcrypt.hash(newPass, 10);
+    await user.save();
+
+    await Otp.deleteMany({ email });
+
+    return res.status(200).json({ message: "Password reset successful" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};

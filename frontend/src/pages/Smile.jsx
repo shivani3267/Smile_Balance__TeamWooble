@@ -13,11 +13,11 @@ export default function Smile() {
   const [rawFile, setRawFile] = useState(null);
   const [status, setStatus] = useState("Ready for scan");
 
-  //FaceAPI models state
+  // ✅ FaceAPI states
   const [modelsReady, setModelsReady] = useState(false);
   const [scanning, setScanning] = useState(false);
 
-  // Single source of truth
+  // ✅ user stats state
   const [userStats, setUserStats] = useState({});
 
   const MODEL_URL =
@@ -39,7 +39,6 @@ export default function Smile() {
     };
 
     loadModels();
-
     return () => stopCamera();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -109,24 +108,31 @@ export default function Smile() {
     setUserStats({});
   };
 
+  //  FIXED UPLOAD: convert to base64 so FaceAPI always works
   const onUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setRawFile(file);
-    setCaptured(URL.createObjectURL(file));
-    setStatus("Uploaded ✅ Ready to scan");
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setCaptured(reader.result); //  base64
+      setStatus("Uploaded ✅ Ready to scan");
+    };
+    reader.readAsDataURL(file);
   };
 
-  ;
 
   const handleScan = async () => {
-    // prevent multiple clicks
     if (scanning) return;
     setScanning(true);
   
     try {
-      if (!rawFile) return;
+      if (!rawFile || !captured) {
+        setStatus("Capture or upload an image first");
+        return;
+      }
   
       if (!modelsReady) {
         setStatus("AI not ready • Check internet");
@@ -139,9 +145,8 @@ export default function Smile() {
         return;
       }
   
-      setStatus("Checking smile... 🤖");
+      setStatus("Checking your expression... 🤖");
   
-      //  Detect face + expressions
       const img = await faceapi.fetchImage(captured);
   
       const result = await faceapi
@@ -154,47 +159,56 @@ export default function Smile() {
       }
   
       const happy = result.expressions?.happy ?? 0;
-      const THRESHOLD = 0.6;
+      const sad = result.expressions?.sad ?? 0;
+      const angry = result.expressions?.angry ?? 0;
   
-      if (happy < THRESHOLD) {
-        setStatus(`Not smiling enough ❌ Score: ${happy.toFixed(2)}`);
+      console.log("EXPRESSIONS:", result.expressions);
+  
+      const SMILE_THRESHOLD = 0.6;
+      const EMOTION_THRESHOLD = 0.15;
+  
+      //  Case 1: Smiling -> reward
+      if (happy >= SMILE_THRESHOLD) {
+        setStatus("Smile verified ✅ Uploading...");
+  
+        const formData = new FormData();
+        formData.append("image", rawFile);
+  
+        const res = await fetch("http://localhost:5000/api/smile/add", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        });
+  
+        const data = await res.json();
+  
+        if (!res.ok) {
+          setStatus(data.message || "Verification failed");
+          return;
+        }
+  
+        setUserStats({
+          streak: data.streak,
+          balance: data.balance,
+          todaySmileCount: data.todaySmileCount,
+          activity: data.activity,
+        });
+  
+        setStatus(data.reward ? `Verified 🎉 +₹${data.reward}` : "Smile verified 🎉");
         return;
       }
   
-      //  Only if smile is valid -> call backend
-      setStatus("Smile verified ✅ Uploading...");
-  
-      const formData = new FormData();
-      formData.append("image", rawFile);
-  
-      const res = await fetch("http://localhost:5000/api/smile/add", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-  
-      const data = await res.json();
-  
-      if (!res.ok) {
-        setStatus(data.message || "Verification failed");
+      // Case 2: Sad/Angry -> open chat
+      if (sad >= EMOTION_THRESHOLD || angry >= EMOTION_THRESHOLD) {
+        setStatus("You seem upset 😟 Opening support chat...");
+        setTimeout(() => nav("/support-chat"), 500);
         return;
       }
   
-      setUserStats({
-        streak: data.streak,
-        balance: data.balance,
-        todaySmileCount: data.todaySmileCount,
-        activity: data.activity,
-      });
-  
-      // show reward amount
-      if (data.reward !== undefined) {
-        setStatus(`Verified 🎉 +₹${data.reward}`);
-      } else {
-        setStatus(data.message || "Smile verified 🎉");
-      }
+      //  Case 3: Not smiling
+      setStatus(`Not smiling enough ❌ Score: ${happy.toFixed(2)}`);
     } catch (err) {
       console.error(err);
       setStatus("Server error. Check your connection.");
@@ -203,6 +217,7 @@ export default function Smile() {
     }
   };
   
+
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#070711] text-white">
       <div className="relative z-10 p-6 md:p-10 max-w-[1200px] mx-auto">
@@ -241,7 +256,12 @@ export default function Smile() {
 
                 <label>
                   Upload
-                  <input type="file" hidden accept="image/*" onChange={onUpload} />
+                  <input
+                    type="file"
+                    hidden
+                    accept="image/*"
+                    onChange={onUpload}
+                  />
                 </label>
               </div>
             </div>
@@ -255,7 +275,11 @@ export default function Smile() {
                   muted
                 />
               ) : (
-                <img src={captured} className="w-full h-full object-cover" alt="smile" />
+                <img
+                  src={captured}
+                  className="w-full h-full object-cover"
+                  alt="smile"
+                />
               )}
             </div>
 
@@ -280,7 +304,10 @@ export default function Smile() {
                 value={captured ? "Ready to Scan ✅" : "Waiting for selfie…"}
               />
 
-              <InfoCard title="AI Models" value={modelsReady ? "Loaded ✅" : "Loading..."} />
+              <InfoCard
+                title="AI Models"
+                value={modelsReady ? "Loaded ✅" : "Loading..."}
+              />
 
               {userStats.balance !== undefined && (
                 <InfoCard title="Balance" value={`₹${userStats.balance}`} />
@@ -293,10 +320,10 @@ export default function Smile() {
 
             <button
               className="mt-6 w-full py-3 bg-white text-black rounded-xl font-bold"
-              disabled={!rawFile || !modelsReady}
+              disabled={!rawFile || !modelsReady || scanning}
               onClick={handleScan}
             >
-              Start AI Scan ✨
+              {scanning ? "Scanning..." : "Start AI Scan ✨"}
             </button>
           </div>
         </div>

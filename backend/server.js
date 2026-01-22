@@ -4,6 +4,8 @@ import cors from "cors";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import smileRoutes from "./routes/smileRoutes.js";
+import chatRoutes from "./routes/chatRoutes.js";
+
 
 
 dotenv.config();
@@ -25,6 +27,8 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/smile", smileRoutes);
+app.use("/api/chat", chatRoutes);
+
 
 app.get("/", (req, res) => {
   res.send("Backend is working!");

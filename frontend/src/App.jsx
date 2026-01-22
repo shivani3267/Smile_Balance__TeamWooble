@@ -4,6 +4,8 @@ import Signup from "./pages/Signup"
 import Dashboard from "./pages/Dashboard"
 import Smile from "./pages/Smile"
 import Withdraw from "./pages/Withdraw"
+import SupportChat from "./pages/SupportChat";
+
 
 export default function App() {
   return (
@@ -15,6 +17,8 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/smile" element={<Smile />} />
         <Route path="/withdraw" element={<Withdraw />} />
+        <Route path="/support-chat" element={<SupportChat />} />
+
       </Routes>
     </BrowserRouter>
   )

@@ -14,7 +14,7 @@ const chatSessionSchema = new mongoose.Schema({
 
   messages: { type: [messageSchema], default: [] },
 
-  // ✅ TTL (auto delete after 6 hours)
+  // TTL (auto delete after 6 hours)
   createdAt: { type: Date, default: Date.now, expires: 21600 },
 });
 

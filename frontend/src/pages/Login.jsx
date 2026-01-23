@@ -11,39 +11,48 @@ export default function Login() {
 
     const handleLogin = async () => {
         if (!email || !password) {
-            setError("Please fill all fields");
-            return;
+          setError("Please fill all fields");
+          return;
         }
-
+      
         setLoading(true);
         setError("");
-
+      
         try {
-            const res = await fetch("http://localhost:5000/api/auth/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ email, password }),
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                throw new Error(data.message || "Login failed");
-            }
-
-            // same pattern as signup
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("user", JSON.stringify(data.user));
-
-            nav("/dashboard");
+          const res = await fetch("http://localhost:5000/api/auth/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: email.trim().toLowerCase(),
+              password: password.trim(),
+            }),
+          });
+      
+          const data = await res.json().catch(() => ({}));
+      
+          // log response clearly
+          console.log("LOGIN STATUS:", res.status);
+          console.log("LOGIN RESPONSE:", data);
+      
+          if (!res.ok) {
+            setError(data.message || `Login failed (${res.status})`);
+            return;
+          }
+      
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("user", JSON.stringify(data.user));
+      
+          nav("/dashboard");
         } catch (err) {
-            setError(err.message);
+          console.log("LOGIN FETCH ERROR:", err);
+          setError(err.message || "Server not reachable");
         } finally {
-            setLoading(false);
+          setLoading(false);
         }
-    };
+      };
+      
 
     return (
         <div className="min-h-screen relative overflow-hidden bg-[#070711] text-white">
@@ -116,9 +125,10 @@ export default function Login() {
                         </div>
 
                         <div className="mt-5 flex justify-between text-sm">
-                            <button className="text-gray-300 underline">
+                            <Link className="text-gray-300 underline" 
+                             to="/forgot-password" >
                                 Forgot password?
-                            </button>
+                            </Link>
                             <Link
                                 to="/signup"
                                 className="text-yellow-200 underline"

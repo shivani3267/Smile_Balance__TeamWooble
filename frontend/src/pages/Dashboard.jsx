@@ -396,7 +396,7 @@ export default function Dashboard() {
 
               {/* Default badges */}
               <div className="mt-4 flex flex-wrap gap-3">
-                <Badge label="AI Verified" />
+                {/* <Badge label="AI Verified" /> */}
                 <Badge label={`${userData.smiles} Smiles`} />
                 <Badge label={`🔥 ${userData.streak} Day Streak`} />
               </div>

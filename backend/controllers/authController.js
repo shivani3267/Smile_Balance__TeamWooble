@@ -5,8 +5,10 @@ import { getBadges } from "../utils/badgeUtils.js";
 import sendMail from "../config/sendEmail.js";
 import Otp from "../models/otp.model.js";
 
-
-export const signup = async (req, res, next) => {
+/*
+   SIGNUP */
+  
+export const signup = async (req, res) => {
   try {
     const { fullName, email, password } = req.body;
 
@@ -27,7 +29,7 @@ export const signup = async (req, res, next) => {
       { expiresIn: "1d" }
     );
 
-    return res.status(201).json({
+    res.status(201).json({
       message: "Signup successful",
       user: {
         id: newUser._id,
@@ -36,23 +38,23 @@ export const signup = async (req, res, next) => {
       },
       token,
     });
-  }  catch (err) {
+  } catch (err) {
     console.error("SIGNUP ERROR:", err);
-    res.status(500).json({
-      message: "Signup failed",
-      error: err.message,
-      stack: err.stack
-    });
+    res.status(500).json({ message: err.message });
   }
-  
 };
 
-export const login = async (req, res, next) => {
+/*
+   LOGIN
+*/
+export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
     }
 
     const user = await User.findOne({ email });
@@ -80,16 +82,15 @@ export const login = async (req, res, next) => {
       },
       token,
     });
-  }  catch (err) {
+  } catch (err) {
     console.error("LOGIN ERROR:", err);
-    return res.status(500).json({
-      message: "Login failed",
-      error: err.message,
-      stack: err.stack,
-    });
+    res.status(500).json({ message: err.message });
   }
-  
 };
+
+/* =========================
+   GET PROFILE
+========================= */
 export const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select(
@@ -100,7 +101,6 @@ export const getProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // ✅ badges based on streak
     const badges = getBadges(user);
 
     res.status(200).json({
@@ -109,19 +109,24 @@ export const getProfile = async (req, res) => {
       badges,
     });
   } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
+    res.status(500).json({ message: err.message });
   }
 };
 
-
-//Forgot Password-------------------------------------------------
+/* =========================
+   FORGOT PASSWORD (SEND OTP)
+========================= */
 export const handleForgotPassword = async (req, res) => {
   const { email } = req.body;
+
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({ message: "User Not Found" });
+      return res.status(404).json({ message: "User not found" });
     }
+
+    // delete old OTPs
+    await Otp.deleteMany({ email });
 
     const otp = Math.floor(100000 + Math.random() * 900000);
 
@@ -130,49 +135,57 @@ export const handleForgotPassword = async (req, res) => {
     const message = `Your verification code for password reset is ${otp}`;
     await sendMail(email, "Reset Password", message);
 
-    return res.status(200).json({ message: "OTP sent to your email" });
+    res.status(200).json({ message: "OTP sent to your email" });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error("FORGOT PASSWORD ERROR:", err);
+    res.status(500).json({ message: err.message });
   }
 };
 
-
+/* =========================
+   VERIFY OTP
+========================= */
 export const handleVerifyOtp = async (req, res) => {
   const { email, otp } = req.body;
+
   try {
-    const record = await Otp.findOne({ email, otp });
+    const record = await Otp.findOne({
+      email,
+      otp: Number(otp), // 🔥 FIX
+    });
+
     if (!record) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
 
-    return res.status(200).json({ message: "OTP verified successfully" });
+    res.status(200).json({ message: "OTP verified successfully" });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({ message: err.message });
   }
 };
 
-
+/*RESET PASSWORD */
 export const handleResetPassword = async (req, res) => {
   const { email, otp, newPass } = req.body;
-  try {
-    const record = await Otp.findOne({ email, otp });
-    if (!record) {
-      return res.status(400).json({ message: "Invalid or expired OTP" });
-    }
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: "User doesn't exist" });
-    }
+  const record = await Otp.findOne({
+    email,
+    otp: Number(otp),
+  });
 
-    user.password = await bcrypt.hash(newPass, 10);
-    await user.save();
-
-    await Otp.deleteMany({ email });
-
-    return res.status(200).json({ message: "Password reset successful" });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Server error" });
+  if (!record) {
+    return res.status(400).json({ message: "Invalid or expired OTP" });
   }
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(404).json({ message: "User doesn't exist" });
+  }
+
+  user.password = newPass; // 🔥 NO bcrypt here
+  await user.save();       // pre-save hook hashes it
+
+  await Otp.deleteMany({ email });
+
+  res.status(200).json({ message: "Password reset successful" });
 };

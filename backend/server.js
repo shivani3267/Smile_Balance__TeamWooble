@@ -38,7 +38,8 @@ app.use((err, req, res, next) => {
 
 //testing
 // console.log("EMAIL:", process.env.MY_EMAIL);
-// console.log("EMAIL:", process.env.MY_EMAIL);
+console.log("EMAIL:", process.env.MY_EMAIL);
+console.log("PASS LENGTH:", process.env.MY_EMAIL_PASS?.length);
 // console.log("PASS:", process.env.MY_EMAIL_PASS ? "LOADED" : "NOT LOADED");
 
 

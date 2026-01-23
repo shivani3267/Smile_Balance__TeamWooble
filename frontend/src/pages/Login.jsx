@@ -116,9 +116,10 @@ export default function Login() {
                         </div>
 
                         <div className="mt-5 flex justify-between text-sm">
-                            <button className="text-gray-300 underline">
+                            <Link className="text-gray-300 underline" 
+                             to="/forgot-password" >
                                 Forgot password?
-                            </button>
+                            </Link>
                             <Link
                                 to="/signup"
                                 className="text-yellow-200 underline"

@@ -4,6 +4,9 @@ import Signup from "./pages/Signup"
 import Dashboard from "./pages/Dashboard"
 import Smile from "./pages/Smile"
 import Withdraw from "./pages/Withdraw"
+import ForgotPassword from "./pages/ForgotPassword"
+import VerifyOtp from "./pages/VerifyOtp"
+import ResetPassword from "./pages/ResetPassword"
 
 export default function App() {
   return (
@@ -15,6 +18,11 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/smile" element={<Smile />} />
         <Route path="/withdraw" element={<Withdraw />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/verify-otp" element={<VerifyOtp />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+
+
       </Routes>
     </BrowserRouter>
   )

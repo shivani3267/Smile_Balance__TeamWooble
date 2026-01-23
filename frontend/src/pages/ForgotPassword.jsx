@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
 
 export default function ForgotPassword() {
@@ -11,8 +11,10 @@ export default function ForgotPassword() {
     e.preventDefault();
     try {
       setLoading(true);
-      await axios.post("/api/auth/forgotPassword", { email });
-      nav("/verify-otp", { state: { email } });
+
+      await api.post("/api/auth/forgot-password", { email });
+
+      nav("/verify-otp", { state: { email } }); // ✅ REQUIRED
     } catch (err) {
       alert(err.response?.data?.message || "Error");
     } finally {

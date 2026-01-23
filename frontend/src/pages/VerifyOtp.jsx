@@ -1,20 +1,27 @@
-import { useState } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import api from "../utils/axiosInstance";
 
 export default function VerifyOtp() {
   const [otp, setOtp] = useState("");
   const { state } = useLocation();
   const nav = useNavigate();
 
+  useEffect(() => {
+    if (!state?.email) nav("/forgot-password");
+  }, [state, nav]);
+
   const verifyHandler = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("/api/auth/verifyPassword", {
+      await api.post("/api/auth/verify-otp", {
         email: state.email,
-        otp,
+        otp: Number(otp),
       });
-      nav("/reset-password", { state: { email: state.email, otp } });
+
+      nav("/reset-password", {
+        state: { email: state.email, otp: Number(otp) },
+      });
     } catch (err) {
       alert(err.response?.data?.message || "Invalid OTP");
     }
@@ -23,7 +30,7 @@ export default function VerifyOtp() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-[#0b0b1a] to-black">
       <div className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-xl text-white">
-        <h2 className="text-2xl font-semibold mb-6">Verify OTP </h2>
+        <h2 className="text-2xl font-semibold mb-6">Verify OTP</h2>
 
         <form onSubmit={verifyHandler} className="space-y-4">
           <input
@@ -43,3 +50,5 @@ export default function VerifyOtp() {
     </div>
   );
 }
+
+

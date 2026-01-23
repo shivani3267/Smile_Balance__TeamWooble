@@ -1,6 +1,6 @@
 import ChatSession from "../models/chatSessionModel.js";
 
-// ✅ simple smart bot reply generator
+//  simple smart bot reply generator
 const getBotReply = (text) => {
   const msg = text.toLowerCase();
 
@@ -27,7 +27,7 @@ const getBotReply = (text) => {
   return "I understand. Tell me more about what happened 🌸";
 };
 
-// ✅ create/get current chat session
+// create/get current chat session
 export const getChatSession = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -55,7 +55,7 @@ export const getChatSession = async (req, res) => {
   }
 };
 
-// ✅ send message
+// send message
 export const sendMessage = async (req, res) => {
   try {
     const userId = req.user._id;

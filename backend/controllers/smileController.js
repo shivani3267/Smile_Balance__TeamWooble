@@ -8,7 +8,7 @@ const getReward = (totalSmileCount) => {
   return Math.floor(Math.random() * 20) + 1; // 1–20
 };
 
-//ADD SMILE
+// ADD SMILE
 export const addSmile = async (req, res) => {
   try {
     if (!req.file) {
@@ -32,6 +32,15 @@ export const addSmile = async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const today = new Date().toISOString().split("T")[0];
+    const now = new Date();
+
+    // safe init (in case old users don't have fields)
+    user.smileHashes = user.smileHashes || [];
+    user.activity = user.activity || [];
+    user.todaySmileCount = user.todaySmileCount || 0;
+    user.totalSmileCount = user.totalSmileCount || 0;
+    user.balance = user.balance || 0;
+    user.streak = user.streak || 0;
 
     // Duplicate image check
     if (user.smileHashes.includes(imageHash)) {
@@ -45,12 +54,30 @@ export const addSmile = async (req, res) => {
       user.todaySmileCount = 0;
     }
 
-    // Daily limit
+    // Daily limit: max 2 per day
     if (user.todaySmileCount >= 2) {
-      return res.status(400).json({ message: "Daily limit reached." });
+      return res.status(400).json({
+        message: "Daily limit reached (2/day). Try again tomorrow!",
+      });
     }
 
-    // Update counts
+    // 6-hour cooldown between each smile (only if user already smiled before)
+    if (user.lastSmileTime) {
+      const SIX_HOURS = 6 * 60 * 60 * 1000;
+      const diff = now.getTime() - new Date(user.lastSmileTime).getTime();
+
+      if (diff < SIX_HOURS) {
+        const leftMs = SIX_HOURS - diff;
+        const leftMin = Math.ceil(leftMs / 60000);
+
+        return res.status(400).json({
+          message: `Wait ${leftMin} minutes before next smile ⏳`,
+          waitLeftMs: leftMs,
+        });
+      }
+    }
+
+    // Passed all checks -> update counts
     user.totalSmileCount += 1;
     user.todaySmileCount += 1;
 
@@ -64,6 +91,9 @@ export const addSmile = async (req, res) => {
 
     user.lastSmileDate = today;
 
+    // Save last smile time (for cooldown)
+    user.lastSmileTime = now;
+
     // Store hash
     user.smileHashes.push(imageHash);
 
@@ -71,13 +101,10 @@ export const addSmile = async (req, res) => {
     const reward = getReward(user.totalSmileCount);
     user.balance += reward;
 
-    // NEW: Save last smile time (for next smile countdown)
-    user.lastSmileTime = new Date();
-
     // Activity log
     user.activity.push({
       action: "smile",
-      time: new Date(),
+      time: now,
       creditsEarned: reward,
     });
 
@@ -127,3 +154,4 @@ export const getStats = async (req, res) => {
       .json({ message: "Internal server error", error: err.message });
   }
 };
+

@@ -147,7 +147,7 @@ export default function Smile() {
 
       console.log("EXPRESSIONS:", result.expressions);
 
-      const SMILE_THRESHOLD = 0.6;
+      const SMILE_THRESHOLD = 0.5;
       const EMOTION_THRESHOLD = 0.15;
 
       //  Open chatbot if sad/angry
@@ -162,6 +162,14 @@ export default function Smile() {
         setStatus(`Not smiling enough ❌ Score: ${happy.toFixed(2)}`);
         return;
       }
+      //test
+      // Open chatbot if not smiling enough
+      // if (happy < SMILE_THRESHOLD) {
+      //   setStatus("Not smiling enough 😐 Opening support chat...");
+      //   setTimeout(() => nav("/support-chat"), 500);
+      //   return;
+      // }
+
 
       setStatus("Smile verified ✅ Uploading...");
 

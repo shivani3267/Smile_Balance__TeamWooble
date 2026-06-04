@@ -7,7 +7,7 @@ import TopBar from "../components/layout/TopBar";
 export default function Dashboard() {
   const nav = useNavigate();
   const [user, setUser] = useState(null);
-  const [badges, setBadges] = useState([]); // ✅ NEW
+  const [badges, setBadges] = useState([]); 
   const [loading, setLoading] = useState(true);
 
   //  Format milliseconds -> "02h 15m"
@@ -113,13 +113,19 @@ export default function Dashboard() {
 
             <button
               onClick={() => {
+                const confirmLogout = window.confirm(
+                  "Are you sure you want to logout?"
+                );
+
+                if (!confirmLogout) return;
+
                 localStorage.removeItem("token");
                 localStorage.removeItem("user");
                 nav("/login");
               }}
               className="w-24 h-11 rounded-3xl bg-gradient-to-br from-yellow-300/40 to-fuchsia-500/30 border border-white/15 hover:scale-105 transition"
             >
-              LogOut
+              Logout
             </button>
           </div>
         </div>

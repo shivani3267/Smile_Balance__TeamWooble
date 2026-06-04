@@ -5,46 +5,6 @@ import { getBadges } from "../utils/badgeUtils.js";
 import sendMail from "../config/sendEmail.js";
 import Otp from "../models/otp.model.js";
 
-// //signup
-// export const signup = async (req, res) => {
-//   try {
-//     let { fullName, email, password } = req.body;
-
-//     fullName = fullName?.trim();
-//     email = email?.trim().toLowerCase();
-//     password = password?.trim();
-
-//     if (!fullName || !email || !password) {
-//       return res.status(400).json({ message: "All fields are required" });
-//     }
-
-//     const existingUser = await User.findOne({ email });
-//     if (existingUser) {
-//       return res.status(400).json({ message: "User already exists" });
-//     }
-
-//     const newUser = await User.create({ fullName, email, password });
-
-//     const token = jwt.sign(
-//       { id: newUser._id, email: newUser.email },
-//       process.env.JWT_SECRET,
-//       { expiresIn: "1d" }
-//     );
-
-//     res.status(201).json({
-//       message: "Signup successful",
-//       user: {
-//         id: newUser._id,
-//         fullName: newUser.fullName,
-//         email: newUser.email,
-//       },
-//       token,
-//     });
-//   } catch (err) {
-//     console.error("SIGNUP ERROR:", err);
-//     res.status(500).json({ message: err.message });
-//   }
-// };
 
 export const signup = async (req, res) => {
   try {

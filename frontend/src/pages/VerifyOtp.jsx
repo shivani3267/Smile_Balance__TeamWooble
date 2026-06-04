@@ -14,7 +14,7 @@ export default function VerifyOtp() {
   const verifyHandler = async (e) => {
     e.preventDefault();
     try {
-      await api.post("/api/auth/verify-otp", {
+      await api.post("/auth/verify-otp", {
         email: state.email,
         otp: Number(otp),
       });

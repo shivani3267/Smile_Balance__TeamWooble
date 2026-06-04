@@ -12,9 +12,9 @@ export default function ForgotPassword() {
     try {
       setLoading(true);
 
-      await api.post("/api/auth/forgot-password", { email });
+      await api.post("/auth/forgot-password", { email });
 
-      nav("/verify-otp", { state: { email } }); // ✅ REQUIRED
+      nav("/verify-otp", { state: { email } });
     } catch (err) {
       alert(err.response?.data?.message || "Error");
     } finally {

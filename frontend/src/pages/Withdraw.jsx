@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../utils/axiosInstance.js";
 
 const MIN_WITHDRAW = 100;
 
@@ -15,7 +16,7 @@ export default function Withdraw() {
     if (!token) return nav("/login");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/profile", {
+      const res = await api.get("/auth/profile", {
         headers: { Authorization: `Bearer ${token}` },
       });
 

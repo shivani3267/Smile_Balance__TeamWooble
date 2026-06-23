@@ -13,11 +13,11 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173",
+    "https://smile-balance-teamwooble-lqkd.onrender.com"],
     credentials: true,
   })
 );
-//app.use(cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -37,11 +37,6 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Server error", error: err.message });
 });
 
-//testing
-// console.log("EMAIL:", process.env.MY_EMAIL);
-console.log("EMAIL:", process.env.MY_EMAIL);
-console.log("PASS LENGTH:", process.env.MY_EMAIL_PASS?.length);
-// console.log("PASS:", process.env.MY_EMAIL_PASS ? "LOADED" : "NOT LOADED");
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

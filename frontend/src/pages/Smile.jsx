@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as faceapi from "face-api.js";
+import api from "../utils/axiosInstance.js";
 
 export default function Smile() {
   const nav = useNavigate();
@@ -158,10 +159,10 @@ export default function Smile() {
       }
 
       //  Smile reward only if smiling enough
-      // if (happy < SMILE_THRESHOLD) {
-      //   setStatus(`Not smiling enough ❌ Score: ${happy.toFixed(2)}`);
-      //   return;
-      // }
+      if (happy < SMILE_THRESHOLD) {
+        setStatus(`Not smiling enough ❌ Score: ${happy.toFixed(2)}`);
+        return;
+      }
       //test
       // Open chatbot if not smiling enough
       // if (happy < SMILE_THRESHOLD) {
@@ -176,7 +177,7 @@ export default function Smile() {
       const formData = new FormData();
       formData.append("image", rawFile);
 
-      const res = await fetch("http://localhost:5000/api/smile/add", {
+      const res = await api.get("/smile/add", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

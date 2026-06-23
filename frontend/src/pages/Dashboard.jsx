@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Badge from "../components/ui/Badge";
 import StatCard from "../components/ui/StatCard";
 import TopBar from "../components/layout/TopBar";
+import api from "../utils/axiosInstance.js";
 
 export default function Dashboard() {
   const nav = useNavigate();
@@ -36,7 +37,7 @@ export default function Dashboard() {
       if (!token) return nav("/login");
 
       try {
-        const res = await fetch("http://localhost:5000/api/auth/profile", {
+        const res = await api.get(`/auth/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

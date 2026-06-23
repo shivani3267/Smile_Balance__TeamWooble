@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import api from "../utils/axiosInstance.js"
+;
 export default function SupportChat() {
   const nav = useNavigate();
 
@@ -15,7 +16,7 @@ export default function SupportChat() {
 
     const loadSession = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/chat/session", {
+        const res = await api.get("/chat/session", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -40,7 +41,7 @@ export default function SupportChat() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/chat/message", {
+      const res = await api.get(`/chat/message`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

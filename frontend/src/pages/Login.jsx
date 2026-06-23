@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import api from "../utils/axiosInstance.js";
 
 export default function Login() {
     const nav = useNavigate();
@@ -19,7 +20,7 @@ export default function Login() {
         setError("");
       
         try {
-          const res = await fetch("http://localhost:5000/api/auth/login", {
+          const res = await api.get(`/auth/login`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

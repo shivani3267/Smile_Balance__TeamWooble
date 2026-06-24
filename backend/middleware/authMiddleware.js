@@ -21,7 +21,7 @@ export const protect = async (req, res, next) => {
       return res.status(401).json({ message: "User not found" });
     }
 
-    req.user = user; // Now your addSmile controller will have req.user
+    req.user = user; // Now  addSmile controller will have req.user
     next();
   } catch (err) {
     console.error("JWT Error:", err);

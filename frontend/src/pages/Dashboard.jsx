@@ -3,14 +3,13 @@ import { useEffect, useState } from "react";
 import Badge from "../components/ui/Badge";
 import StatCard from "../components/ui/StatCard";
 import TopBar from "../components/layout/TopBar";
-import api from "../utils/axiosInstance.js";
 
 export default function Dashboard() {
   const nav = useNavigate();
   const [user, setUser] = useState(null);
-  const [badges, setBadges] = useState([]); 
+  const [badges, setBadges] = useState([]); // ✅ NEW
   const [loading, setLoading] = useState(true);
-
+  const API_URL = import.meta.env.API_URL || "http://localhost:5000";
   //  Format milliseconds -> "02h 15m"
   const formatMs = (ms) => {
     const totalMinutes = Math.ceil(ms / 60000);
@@ -37,7 +36,7 @@ export default function Dashboard() {
       if (!token) return nav("/login");
 
       try {
-        const res = await api.get(`/auth/profile`, {
+        const res = await fetch(`${API_URL}/api/auth/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -114,19 +113,13 @@ export default function Dashboard() {
 
             <button
               onClick={() => {
-                const confirmLogout = window.confirm(
-                  "Are you sure you want to logout?"
-                );
-
-                if (!confirmLogout) return;
-
                 localStorage.removeItem("token");
                 localStorage.removeItem("user");
                 nav("/login");
               }}
               className="w-24 h-11 rounded-3xl bg-gradient-to-br from-yellow-300/40 to-fuchsia-500/30 border border-white/15 hover:scale-105 transition"
             >
-              Logout
+              LogOut
             </button>
           </div>
         </div>

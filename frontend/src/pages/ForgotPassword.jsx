@@ -1,19 +1,29 @@
 import { useState } from "react";
-import api from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const nav = useNavigate();
-
+  const API_URL = import.meta.env.API_URL || "http://localhost:5000";
   const submitHandler = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
 
-      await api.post("/auth/forgot-password", { email });
+      const res = await fetch(`${API_URL}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+      });
 
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to send OTP");
+      }
+      
       nav("/verify-otp", { state: { email } });
     } catch (err) {
       alert(err.response?.data?.message || "Error");

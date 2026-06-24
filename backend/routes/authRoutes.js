@@ -8,7 +8,6 @@ import {
   handleForgotPassword,
   handleVerifyOtp,
   handleResetPassword,
-  verifyEmail,
 } from "../controllers/authController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -21,7 +20,6 @@ router.post("/login", login);
 router.post("/forgot-password", handleForgotPassword);
 router.post("/verify-otp", handleVerifyOtp);
 router.post("/reset-password", handleResetPassword);
-router.post("/verify-email", verifyEmail);
 
 // protected
 router.get("/profile", protect, getProfile);

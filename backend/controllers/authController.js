@@ -5,7 +5,7 @@ import { getBadges } from "../utils/badgeUtils.js";
 import sendMail from "../config/sendEmail.js";
 import Otp from "../models/otp.model.js";
 
-
+//signup
 export const signup = async (req, res) => {
   try {
     let { fullName, email, password } = req.body;
@@ -19,43 +19,26 @@ export const signup = async (req, res) => {
     }
 
     const existingUser = await User.findOne({ email });
-
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const newUser = await User.create({
-      fullName,
-      email,
-      password,
-      isVerified: false,
-    });
+    const newUser = await User.create({ fullName, email, password });
 
-    await Otp.deleteMany({
-      email,
-      purpose: "email_verification",
-    });
-
-    const otp = Math.floor(100000 + Math.random() * 900000);
-
-    await Otp.create({
-      email,
-      otp,
-      purpose: "email_verification",
-    });
-
-    const message = `Your email verification OTP is ${otp}. This OTP will expire in 5 minutes.`;
-
-    await sendMail(email, "Verify Your Email", message);
+    const token = jwt.sign(
+      { id: newUser._id, email: newUser.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
     res.status(201).json({
-      message: "Signup successful. OTP sent to your email.",
+      message: "Signup successful",
       user: {
         id: newUser._id,
         fullName: newUser.fullName,
         email: newUser.email,
-        isVerified: newUser.isVerified,
       },
+      token,
     });
   } catch (err) {
     console.error("SIGNUP ERROR:", err);
@@ -82,12 +65,6 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "User not found" });
-    }
-
-    if (!user.isVerified) {
-      return res.status(403).json({
-        message: "Please verify your email before login",
-      });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -156,11 +133,11 @@ export const handleForgotPassword = async (req, res) => {
     }
 
     // delete old OTPs
-    await Otp.deleteMany({ email, purpose: "forgot_password" });
+    await Otp.deleteMany({ email });
 
     const otp = Math.floor(100000 + Math.random() * 900000);
 
-    await Otp.create({ email, otp, purpose: "forgot_password" });
+    await Otp.create({ email, otp });
 
     const message = `Your verification code for password reset is ${otp}`;
     await sendMail(email, "Reset Password", message);
@@ -181,11 +158,9 @@ export const handleVerifyOtp = async (req, res) => {
   email = email?.trim().toLowerCase();
 
   try {
-    console.log("VERIFY OTP BODY:", req.body);
     const record = await Otp.findOne({
       email,
       otp: Number(otp),
-      purpose: "forgot_password",
     });
 
     if (!record) {
@@ -211,7 +186,6 @@ export const handleResetPassword = async (req, res) => {
     const record = await Otp.findOne({
       email,
       otp: Number(otp),
-      purpose: "forgot_password",
     });
 
     if (!record) {
@@ -223,63 +197,15 @@ export const handleResetPassword = async (req, res) => {
       return res.status(404).json({ message: "User doesn't exist" });
     }
 
-   
+    // save new password (hashing should happen in user model pre-save hook)
     user.password = newPass;
     await user.save();
 
-    await Otp.deleteMany({
-      email,
-      purpose: "forgot_password",
-    });
+    await Otp.deleteMany({ email });
 
     res.status(200).json({ message: "Password reset successful" });
   } catch (err) {
     console.error("RESET PASSWORD ERROR:", err);
-    res.status(500).json({ message: err.message });
-  }
-};
-
-export const verifyEmail = async (req, res) => {
-  try {
-    let { email, otp } = req.body;
-
-    email = email?.trim().toLowerCase();
-
-    if (!email || !otp) {
-      return res.status(400).json({ message: "Email and OTP are required" });
-    }
-
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    if (user.isVerified) {
-      return res.status(400).json({ message: "Email already verified" });
-    }
-
-    const record = await Otp.findOne({
-      email,
-      otp: Number(otp),
-      purpose: "email_verification",
-    });
-
-    if (!record) {
-      return res.status(400).json({ message: "Invalid or expired OTP" });
-    }
-
-    user.isVerified = true;
-    await user.save();
-
-    await Otp.deleteMany({
-      email,
-      purpose: "email_verification",
-    });
-
-    res.status(200).json({ message: "Email verified successfully" });
-  } catch (err) {
-    console.error("VERIFY EMAIL ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 };

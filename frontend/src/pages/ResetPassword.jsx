@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import api from "../utils/axiosInstance";
 
 export default function ResetPassword() {
   const [newPass, setNewPass] = useState("");
   const { state } = useLocation();
   const nav = useNavigate();
+  const API_URL = import.meta.env.API_URL || "http://localhost:5000";
 
   useEffect(() => {
     if (!state?.email || !state?.otp) nav("/forgot-password");
@@ -14,7 +14,7 @@ export default function ResetPassword() {
   const resetHandler = async (e) => {
     e.preventDefault();
     try {
-      await api.post("/auth/reset-password", {
+      await fetch(`${API_URL}/auth/reset-password`, {
         email: state.email,
         otp: state.otp,
         newPass,

@@ -8,7 +8,6 @@ import ForgotPassword from "./pages/ForgotPassword"
 import VerifyOtp from "./pages/VerifyOtp"
 import ResetPassword from "./pages/ResetPassword"
 import SupportChat from "./pages/SupportChat";
-import VerifyEmail from "./pages/VerifyEmail";
 
 export default function App() {
   return (
@@ -24,8 +23,6 @@ export default function App() {
         <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/support-chat" element={<SupportChat />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
-
 
       </Routes>
     </BrowserRouter>

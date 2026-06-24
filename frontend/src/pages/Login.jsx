@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import api from "../utils/axiosInstance.js";
 
 export default function Login() {
     const nav = useNavigate();
@@ -9,50 +8,52 @@ export default function Login() {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-
+    const API_URL = import.meta.env.API_URL || "http://localhost:5000";
     const handleLogin = async () => {
-        if (!email || !password) {
-          setError("Please fill all fields");
-          return;
-        }
-      
-        setLoading(true);
-        setError("");
-      
-        try {
-          const res = await api.get(`/auth/login`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email: email.trim().toLowerCase(),
-              password: password.trim(),
-            }),
-          });
-      
-          const data = await res.json().catch(() => ({}));
-      
-          // log response clearly
-          console.log("LOGIN STATUS:", res.status);
-          console.log("LOGIN RESPONSE:", data);
-      
-          if (!res.ok) {
-            setError(data.message || `Login failed (${res.status})`);
-            return;
-          }
-      
-          localStorage.setItem("token", data.token);
-          localStorage.setItem("user", JSON.stringify(data.user));
-      
-          nav("/dashboard");
-        } catch (err) {
-          console.log("LOGIN FETCH ERROR:", err);
-          setError(err.message || "Server not reachable");
-        } finally {
-          setLoading(false);
-        }
-      };
+    if (!email || !password) {
+      setError("Please fill all fields");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password: password.trim(),
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setError(data.message || `Login failed (${response.status})`);
+        return;
+      }
+
+      // Success
+      localStorage.setItem("token", data.token);
+      if (data.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+      }
+
+      setTimeout(() => {
+            nav("/dashboard", { replace: true });
+        }, 100);
+
+    } catch (err) {
+      console.error(err);
+      setError("Cannot connect to server. Make sure backend is running.");
+    } finally {
+      setLoading(false);
+    }
+  };
       
 
     return (

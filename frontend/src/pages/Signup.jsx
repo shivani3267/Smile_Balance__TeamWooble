@@ -1,6 +1,5 @@
 import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
-import api from "../utils/axiosInstance.js"
 
 export default function Signup() {
     const nav = useNavigate()
@@ -21,16 +20,16 @@ export default function Signup() {
 
         try {
             setLoading(true)
-
-            const res = await api.get(`/auth/signup`, {
+            const API_URL = import.meta.env.API_URL || "http://localhost:5000";
+            const res = await fetch(`${API_URL}/api/auth/signup`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    fullName,
-                    email,
-                    password,
+                    fullName: fullName.trim(),
+                    email: email.trim().toLowerCase(),
+                    password: password.trim()
                 }),
             })
 

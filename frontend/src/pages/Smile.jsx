@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as faceapi from "face-api.js";
-import api from "../utils/axiosInstance.js";
 
 export default function Smile() {
   const nav = useNavigate();
@@ -176,8 +175,8 @@ export default function Smile() {
 
       const formData = new FormData();
       formData.append("image", rawFile);
-
-      const res = await api.get("/smile/add", {
+      const API_URL = import.meta.env.API_URL || "http://localhost:5000";
+      const res = await fetch(`${API_URL}/api/smile/add`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

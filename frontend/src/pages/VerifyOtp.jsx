@@ -14,16 +14,32 @@ export default function VerifyOtp() {
   const verifyHandler = async (e) => {
     e.preventDefault();
     try {
-      await api.post("/auth/verify-otp", {
-        email: state.email,
-        otp: Number(otp),
+      const res = await fetch(`${API_URL}/api/auth/verify-otp`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: state.email,
+          otp: Number(otp),
+        }),
       });
 
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Invalid OTP");
+      }
+
+      // Success
       nav("/reset-password", {
         state: { email: state.email, otp: Number(otp) },
       });
     } catch (err) {
-      alert(err.response?.data?.message || "Invalid OTP");
+      console.error(err);
+      setError(err.message || "Failed to verify OTP");
+    } finally {
+      setLoading(false);
     }
   };
 

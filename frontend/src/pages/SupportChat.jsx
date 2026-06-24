@@ -8,7 +8,7 @@ export default function SupportChat() {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const API_URL = import.meta.env.API_URL || "http://localhost:5000";
   const token = localStorage.getItem("token");
 
   useEffect(() => {
@@ -16,7 +16,7 @@ export default function SupportChat() {
 
     const loadSession = async () => {
       try {
-        const res = await api.get("/chat/session", {
+        const res = await fetch(`${API_URL}/api/chat/session`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -41,7 +41,7 @@ export default function SupportChat() {
     setLoading(true);
 
     try {
-      const res = await api.get(`/chat/message`, {
+      const res = await fetch(`${API_URL}/chat/message`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
